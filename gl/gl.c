@@ -15,7 +15,7 @@ static int vpx = 0;
 static int vpy = 0;
 static int vpw = 0;
 static int vph = 0;
-static int ccolor;
+static int ccolor = 0;
 
 
 void glInit()
@@ -46,7 +46,9 @@ void glViewport(int x, int y, int width, int height)
 void glClear()
 {
 	for(int i = 0; i < fbheight; ++i) {
-		memset(fb[i], 0, fbwidth * sizeof(int));
+		for (int j = 0; j < fbwidth; ++j) {
+			fb[i][j] = 0;
+		}
 	}
 }
 
@@ -75,10 +77,11 @@ void glVertex(double x, double y)
 
 void glColor(double r, double g, double b)
 {
-	int rint = floor(r >= 1.0 ? 255: r * 255.0);
-	int gint = floor(g >= 1.0 ? 255: r * 255.0);
-	int bint = floor(b >= 1.0 ? 255: r * 255.0);
+	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
+	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
+	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
 	ccolor = (rint << 16) + (gint << 8) + bint;
+	printf("CCOLOR %d", ccolor);
 }
 
 void glFinish()
