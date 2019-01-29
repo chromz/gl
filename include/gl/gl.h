@@ -4,7 +4,7 @@ void glInit();
 
 void glCreateWindow(int width, int height);
 
-void glViewPort(int x, int y, int width, int height);
+void glViewport(int x, int y, int width, int height);
 
 void glClear();
 
