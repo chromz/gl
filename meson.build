@@ -1,11 +1,12 @@
 project('sr1', 'c')
 
 gl_include_dirs = include_directories('include')
-add_global_arguments('-Wpedantic', language : 'c')
+add_project_arguments('-Wpedantic', language : 'c')
 
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : false)
 
 subdir('bmp')
 subdir('gl')
+subdir('labs')
 subdir('tests')
