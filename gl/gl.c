@@ -5,8 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#define FEPSILON 0.000001
-
 static int **fb;
 
 static int fbwidth;
@@ -67,12 +65,14 @@ void glClearColor(double r, double g, double b)
 
 void glVertex(double x, double y)
 {
-	if (fabs(x - 1.0) < FEPSILON || fabs(y - 1.0) < FEPSILON) {
+	if (fabs(x) > 1.0 || fabs(y) > 1.0) {
 		return;
 	}
 	int xw = vpx + (x + 1.0) * (vpw / 2.0);
 	int yw = vpy + (y + 1.0) * (vph / 2.0);
-	fb[yw][xw] = ccolor;
+	int inx = (xw - 1) >= 0 ? xw - 1 : 0;
+	int iny = (yw - 1) >= 0 ? yw - 1 : 0;
+	fb[iny][inx] = ccolor;
 }
 
 void glColor(double r, double g, double b)
@@ -81,7 +81,6 @@ void glColor(double r, double g, double b)
 	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
 	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
 	ccolor = (rint << 16) + (gint << 8) + bint;
-	printf("CCOLOR %d", ccolor);
 }
 
 void glFinish()

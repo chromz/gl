@@ -7,5 +7,13 @@ int main(int argc, char **argv) {
 	glClear();
 	glColor(1.0, 0.0, 1.0);
 	glVertex(0.0, 0.0);
+	glVertex(-1.0, 1.0);
+	glVertex(-1.0, -1.0);
+	glVertex(1.0, -1.0);
+	glVertex(1.0, 1.0);
+	glVertex(1.5, 1.5);
+	glVertex(-1.5, 1.5);
+	glVertex(1.5, -1.5);
 	glFinish();
+	return 0;
 }
