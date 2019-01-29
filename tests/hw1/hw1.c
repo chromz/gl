@@ -2,7 +2,7 @@
 #include <gl/gl.h>
 
 int main(int argc, char **argv) {
-	glCreateWindow(800, 600);
-	glClearColor(3, 4, 5);
+	glCreateWindow(600, 400);
+	glClearColor(0.0, 1.0, 1.0);
 	glFinish();
 }

@@ -48,7 +48,7 @@ int bmp_write(int **fb, int width, int height, char *filename)
 
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
-			fwrite(&fb[y][x], 1, 1, file);
+			fwrite(&fb[y][x], 3, 1, file);
 		}
 	}
 

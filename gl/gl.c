@@ -31,6 +31,8 @@ void glCreateWindow(int width, int height)
 	for(int i = 0; i < height; ++i) {
 		fb[i] = calloc(width, sizeof(int));
 	}
+	vpw = width;
+	vph = height;
 }
 
 void glViewport(int x, int y, int width, int height)
@@ -50,12 +52,14 @@ void glClear()
 
 void glClearColor(double r, double g, double b)
 {
-	int rint = floor(r >= 1.0 ? 255: r * 255.0);
-	int gint = floor(g >= 1.0 ? 255: r * 255.0);
-	int bint = floor(b >= 1.0 ? 255: r * 255.0);
+	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
+	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
+	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
 	int color = (rint << 16) + (gint << 8) + bint;
 	for(int i = 0; i < fbheight; ++i) {
-		memset(fb[i], color, fbwidth * sizeof(int));
+		for (int j = 0; j < fbwidth; ++j) {
+			fb[i][j] = color;
+		}
 	}
 }
 
@@ -69,7 +73,7 @@ void glVertex(double x, double y)
 	fb[yw][xw] = ccolor;
 }
 
-void glColor(int r, int g, int b)
+void glColor(double r, double g, double b)
 {
 	int rint = floor(r >= 1.0 ? 255: r * 255.0);
 	int gint = floor(g >= 1.0 ? 255: r * 255.0);

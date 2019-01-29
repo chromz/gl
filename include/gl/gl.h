@@ -1,5 +1,5 @@
-#ifndef HEADER_FILE
-#define HEADER_FILE
+#ifndef GL_H
+#define GL_H
 void glInit();
 
 void glCreateWindow(int width, int height);
@@ -8,11 +8,11 @@ void glViewport(int x, int y, int width, int height);
 
 void glClear();
 
-void glClearColor(int r, int g, int b);
+void glClearColor(double r, double g, double b);
 
-void glVertex(int x, int y);
+void glVertex(double x, double y);
 
-void glColor(int r, int g, int b);
+void glColor(double r, double g, double b);
 
 void glFinish();
 
