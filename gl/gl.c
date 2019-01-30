@@ -1,4 +1,4 @@
-
+// Rodrigo Custodio
 #include <bmp/bmp.h>
 #include <math.h>
 #include <stdlib.h>

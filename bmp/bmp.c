@@ -1,3 +1,5 @@
+// Rodrigo Custodio
+
 #include <stdio.h>
 #include <stdlib.h>
 
