@@ -3,7 +3,6 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 static int **fb;
 
@@ -68,8 +67,8 @@ void glVertex(double x, double y)
 	if (fabs(x) > 1.0 || fabs(y) > 1.0) {
 		return;
 	}
-	int xw = vpx + (x + 1.0) * (vpw / 2.0);
-	int yw = vpy + (y + 1.0) * (vph / 2.0);
+	int xw = ceil(vpx + (x + 1.0) * (vpw / 2.0));
+	int yw = ceil(vpy + (y + 1.0) * (vph / 2.0));
 	int inx = (xw - 1) >= 0 ? xw - 1 : 0;
 	int iny = (yw - 1) >= 0 ? yw - 1 : 0;
 	fb[iny][inx] = ccolor;
