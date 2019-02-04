@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define FEPSILON 0.00001
+#define FEPSILON 0.000001
 
 
 
@@ -23,7 +23,6 @@ static void rpoint()
 	srandom(time(NULL));
 	double x = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
 	double y = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
-	printf(" %f %f", x, y);
 	glVertex(x, y);
 	glFinish();
 }
@@ -42,8 +41,9 @@ static void fourpoints()
 
 static void draw_line(double startx, double starty, double endx, double endy)
 {
-	double delta = 0.001;
-	if (fabs(endx - startx) <= FEPSILON && fabs(endy - starty) <= FEPSILON) {
+	double delta = FEPSILON;
+	if (fabs(endx - startx) <= FEPSILON &&
+		fabs(endy - starty) <= FEPSILON) {
 		glVertex(startx, endx);
 		return;
 	}
@@ -53,21 +53,24 @@ static void draw_line(double startx, double starty, double endx, double endy)
 		if (endy - starty < 0) {
 			delta *= -1.0;
 		}
-		for (double y = starty; fabs(endy - y) > FEPSILON ; y += delta) {
+
+		for (double y = starty; fabs(endy - y) > FEPSILON; y += delta) {
 			glVertex(slope * (y - starty) + startx, y);
 		}
+
 	} else {
 		double slope = (endy - starty) / (endx - startx);
 		if (endx - startx < 0) {
 			delta *= -1.0;
 		}
 
-		for (double x = startx; fabs(endx - x) > FEPSILON ; x += delta) {
+		for (double x = startx; fabs(endx - x) > FEPSILON; x += delta) {
 			glVertex(x, slope * (x - startx) + starty);
 		}
 	}
 	
 }
+
 
 static void square()
 {
@@ -123,7 +126,7 @@ static void rgb_static()
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
 	for (double x = -1.0; x <= 1.0; x += 0.00333) {
-		for (double y = -1.0; y <= 1.0; y += 0.00333) {
+		for (double y = -1.0; y <= 1.0; y += 0.005) {
 			double r = (random() /  (float) RAND_MAX);
 			double g = (random() /  (float) RAND_MAX);
 			double b = (random() /  (float) RAND_MAX);
@@ -135,11 +138,137 @@ static void rgb_static()
 }
 
 
+static void fill(int width, int height)
+{
+	double dx = 2.0 / (width + 1);
+	double dy = 2.0 / (height + 1);
+	for (double x = -1.0; x <= 1.0; x += dx) {
+		for (double y = -1.0; y <= 1.0; y += dy) {
+			glVertex(x, y);
+		}
+	}
+
+}
+
+static void skyscrapper(double offset)
+{
+	draw_line(offset + 0.2, -0.32291666666, offset + 0.2875, -0.32291666666);
+	draw_line(offset + 0.2, -0.31, offset + 0.2875, -0.31);
+	draw_line(offset + 0.2, -0.30208333333, offset + 0.2875, -0.30208333333);
+	draw_line(offset + 0.2, -0.29166666666, offset + 0.2875, -0.29166666666);
+	draw_line(offset + 0.2, -0.28, offset + 0.2875, -0.28);
+	draw_line(offset + 0.2, -0.27, offset + 0.2875, -0.27);
+	draw_line(offset + 0.2, -0.26, offset + 0.2875, -0.26);
+	draw_line(offset + 0.2, -0.25, offset + 0.2875, -0.25);
+	draw_line(offset + 0.2, -0.24, offset + 0.2875, -0.24);
+	draw_line(offset + 0.225, -0.23, offset + 0.2625, -0.23);
+	draw_line(offset + 0.225, -0.22, offset + 0.2625, -0.22);
+	draw_line(offset + 0.225, -0.21, offset + 0.2625, -0.21);
+	draw_line(offset + 0.2375, -0.20, offset + 0.25, -0.20);
+	draw_line(offset + 0.2375, -0.19, offset + 0.25, -0.19);
+	draw_line(offset + 0.2375, -0.18, offset + 0.25, -0.18);
+	draw_line(offset + 0.2375, -0.17, offset + 0.25, -0.17);
+}
+
+static void atari()
+{
+	glCreateWindow(160, 192);
+	glClearColor(0.0, 0.0, 0.0);
+	glViewport(12, 66, 136, 125);
+	glColor(0.604, 0.784, 0);
+	fill(136, 125);
+	glViewport(0, 0, 160, 192);
+	
+	// Draw the bird
+	glColor(0.063, 0.212, 0);
+	draw_line(-0.5625, 0.39583, -0.513, 0.39583);
+	draw_line(-0.5375, 0.40625, -0.5375, 0.36458333333);
+	draw_line(-0.5375, 0.3854, -0.4625, 0.3854);
+	draw_line(-0.5375, 0.375, -0.4625, 0.375);
+	draw_line(-0.5125, 0.36458333333, -0.4375, 0.36458333333);
+	draw_line(-0.5125, 0.35416666666, -0.4125, 0.35416666666);
+	draw_line(-0.5375, 0.34375, -0.5125, 0.34375);
+	draw_line(-0.5625, 0.33333333333, -0.513, 0.33333333333);
+	draw_line(-0.5625, 0.32291666666, -0.513, 0.32291666666);
+	draw_line(-0.5375, 0.3125, -0.5125, 0.3125);
+	draw_line(-0.4375, 0.34375, -0.3875, 0.34375);
+	draw_line(-0.4375, 0.33333333333, -0.3875, 0.33333333333);
+	
+	// Shadow
+	glColor(0, 0.082, 0.004);
+	draw_line(-0.55, 0.25, -0.5125, 0.25);
+	draw_line(-0.5375, 0.23958333333, -0.4375, 0.23958333333);
+	draw_line(-0.55, 0.22916666666, -0.5125, 0.22916666666);
+
+	// Skyscraper
+	glColor(0.996, 0.875, 0.439);
+	skyscrapper(0.0);
+	skyscrapper(-0.40);
+	skyscrapper(-0.80);
+
+	// Zero
+	draw_line(0.225, -0.375, 0.2625, -0.375);
+	draw_line(0.225, -0.375, 0.2625, -0.375);
+	draw_line(0.225, -0.42, 0.2625, -0.42);
+	draw_line(0.225, -0.375, 0.225, -0.42);
+	draw_line(0.2625, -0.375, 0.2625, -0.42);
+	
+	glFinish();
+}
+
+void stars()
+{
+	glCreateWindow(600, 400);
+	srandom(time(NULL));
+	glColor(1.0, 1.0, 1.0);
+	for (double x = -1.0; x <= 1.0; x += 0.00333) {
+		for (double y = -1.0; y <= 1.0; y += 0.005) {
+			double paint = (random() /  (float) RAND_MAX);
+			if (paint < 0.001) {
+				double big = (random() /  (float) RAND_MAX);
+				if (big < 0.09) {
+					glVertex(x, y);
+					glVertex(x + 0.00333, y);
+					glVertex(x - 0.00333, y);
+					glVertex(x - 0.00333, y + 0.005);
+					glVertex(x + 0.00333, y - 0.005);
+					glVertex(x + 0.00333, y + 0.005);
+					glVertex(x - 0.00333, y - 0.005);
+					glVertex(x, y + 0.005);
+					glVertex(x, y - 0.005);
+				} else {
+					glVertex(x, y);
+				}
+			}
+		}
+	}
+	glFinish();
+
+}
+
 
 int main(int argc, char **argv)
 {
+	const char usage[] = "rpoint\n"
+			     " Generate random point\n"
+			     "fourpoints\n"
+			     " Generate four points\n"
+			     "square\n"
+			     " Generate a 100x100 square\n"
+			     "diagonal\n"
+			     " Draw 1 line on each border\n"
+			     "gray_static\n"
+			     " Draw gray static\n"
+			     "rgb_static\n"
+			     " Draw rgb static\n"
+			     "atari\n"
+			     " Draw an ATARI 2600 screen\n"
+			     "stars\n"
+			     " Draw stars\n";
 	if (argc != 2) {
 		printf("Usage: %s <option>\n", argv[0]);
+		printf("Output will always be on canvas.bmp\n");
+		printf(usage);
 		return 1;
 	}
 
@@ -157,6 +286,14 @@ int main(int argc, char **argv)
 		gray_static();
 	} else if (strcmp("rgb_static", argv[1]) == 0) {
 		rgb_static();
+	} else if (strcmp("atari", argv[1]) == 0) {
+		atari();
+	} else if (strcmp("stars", argv[1]) == 0) {
+		stars();
+	} else {
+		printf("Usage: %s <option>\n", argv[0]);
+		printf("Output will always be on canvas.bmp\n");
+		printf(usage);
 	}
 
 	return 0;
