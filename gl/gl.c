@@ -82,8 +82,21 @@ void glColor(double r, double g, double b)
 	ccolor = (rint << 16) + (gint << 8) + bint;
 }
 
-void glLine(double x0, double y0, double x1, double y2)
+
+void glLine(double x0, double y0, double x1, double y1)
 {
+	int x0w = ceil(vpx + (x0 + 1.0) * (vpw / 2.0));
+	int y0w = ceil(vpy + (y0 + 1.0) * (vph / 2.0));
+	int x1w = ceil(vpx + (x1 + 1.0) * (vpw / 2.0));
+	int y1w = ceil(vpy + (y1 + 1.0) * (vph / 2.0));
+
+	int dx = x1 - x0;
+	int dy = y1 - y0;
+	int yo = 1;
+	if (dy < 0) {
+		yo = -1;
+		dy = -dy;
+	}
 
 }
 
