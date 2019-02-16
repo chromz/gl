@@ -14,7 +14,7 @@
 
 
 
-static void rpoint()
+static void rpoint(void)
 {
 	glCreateWindow(800, 600);
 	glColor(1.0, 1.0, 1.0);
@@ -27,7 +27,7 @@ static void rpoint()
 	glFinish();
 }
 
-static void fourpoints()
+static void fourpoints(void)
 {
 	glCreateWindow(600, 400);
 	glColor(1.0, 1.0, 1.0);
@@ -72,7 +72,7 @@ static void draw_line(double startx, double starty, double endx, double endy)
 }
 
 
-static void square()
+static void square(void)
 {
 	glCreateWindow(600, 400);
 	glColor(1.0, 1.0, 1.0);
@@ -84,7 +84,7 @@ static void square()
 	glFinish();
 }
 
-static void diagonal()
+static void diagonal(void)
 {
 	glCreateWindow(600, 400);
 	glColor(1.0, 1.0, 1.0);
@@ -92,7 +92,7 @@ static void diagonal()
 	glFinish();
 }
 
-static void borders()
+static void borders(void)
 {
 	glCreateWindow(600, 400);
 	glColor(1.0, 1.0, 1.0);
@@ -103,7 +103,7 @@ static void borders()
 	glFinish();
 }
 
-static void gray_static()
+static void gray_static(void)
 {
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
@@ -121,7 +121,7 @@ static void gray_static()
 	glFinish();
 }
 
-static void rgb_static()
+static void rgb_static(void)
 {
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
@@ -170,7 +170,7 @@ static void skyscrapper(double offset)
 	draw_line(offset + 0.2375, -0.17, offset + 0.25, -0.17);
 }
 
-static void atari()
+static void atari(void)
 {
 	glCreateWindow(160, 192);
 	glClearColor(0.0, 0.0, 0.0);
@@ -216,7 +216,7 @@ static void atari()
 	glFinish();
 }
 
-void stars()
+void stars(void)
 {
 	glCreateWindow(600, 400);
 	srandom(time(NULL));

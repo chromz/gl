@@ -15,7 +15,7 @@ static int vph = 0;
 static int ccolor = 0;
 
 
-void glInit()
+void glInit(void)
 {
 	// TODO
 }
@@ -82,7 +82,12 @@ void glColor(double r, double g, double b)
 	ccolor = (rint << 16) + (gint << 8) + bint;
 }
 
-void glFinish()
+void glLine(double x0, double y0, double x1, double y2)
+{
+
+}
+
+void glFinish(void)
 {
 	bmp_write(fb, fbwidth, fbheight, "canvas.bmp");
 }
