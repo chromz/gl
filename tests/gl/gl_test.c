@@ -1,7 +1,7 @@
 // Rodrigo Custodio
 
 #include <stdio.h>
-#include <gl/gl.h>
+#include "gl/gl.h"
 
 int main(int argc, char **argv)
 {
@@ -18,6 +18,11 @@ int main(int argc, char **argv)
 	glVertex(1.5, 1.5);
 	glVertex(-1.5, 1.5);
 	glVertex(1.5, -1.5);
+	glViewport(0, 0, 600, 400);
+	glLine(-1.0, 1.0, 1.0, -1.0);
+	glLine(0.3, 0.3, 0.3, 0.3);
+	glLine(0.0, 0.0, 0.0, 1.0);
+	glLine(-1.0, -1.0, 1.0, 1.0);
 	glFinish();
 	return 0;
 }

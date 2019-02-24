@@ -1,6 +1,7 @@
 // Rodrigo Custodio
-#include <bmp/bmp.h>
+#include "bmp/bmp.h"
 #include <math.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,7 +26,7 @@ void glCreateWindow(int width, int height)
 	fbwidth = width;
 	fbheight = height;
 	fb = malloc(sizeof(int*) * height);
-	for(int i = 0; i < height; ++i) {
+	for(int i = 0; i < height; i++) {
 		fb[i] = calloc(width, sizeof(int));
 	}
 	vpw = width;
@@ -42,8 +43,8 @@ void glViewport(int x, int y, int width, int height)
 
 void glClear()
 {
-	for(int i = 0; i < fbheight; ++i) {
-		for (int j = 0; j < fbwidth; ++j) {
+	for(int i = 0; i < fbheight; i++) {
+		for (int j = 0; j < fbwidth; j++) {
 			fb[i][j] = 0;
 		}
 	}
@@ -55,10 +56,26 @@ void glClearColor(double r, double g, double b)
 	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
 	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
 	int color = (rint << 16) + (gint << 8) + bint;
-	for(int i = 0; i < fbheight; ++i) {
-		for (int j = 0; j < fbwidth; ++j) {
+	for(int i = 0; i < fbheight; i++) {
+		for (int j = 0; j < fbwidth; j++) {
 			fb[i][j] = color;
 		}
+	}
+}
+
+static inline void point(int x, int y)
+{
+	fb[y][x] = ccolor;
+}
+
+static int ndcToInt(double val, bool isXaxis)
+{
+	if (isXaxis) {
+		int xw = ceil(vpx + (val + 1.0) * (vpw / 2.0));
+		return (xw - 1) >= 0 ? xw - 1 : 0;
+	} else {
+		int yw = ceil(vpy + (val + 1.0) * (vph / 2.0));
+		return (yw - 1) >= 0 ? yw - 1 : 0;
 	}
 }
 
@@ -67,11 +84,9 @@ void glVertex(double x, double y)
 	if (fabs(x) > 1.0 || fabs(y) > 1.0) {
 		return;
 	}
-	int xw = ceil(vpx + (x + 1.0) * (vpw / 2.0));
-	int yw = ceil(vpy + (y + 1.0) * (vph / 2.0));
-	int inx = (xw - 1) >= 0 ? xw - 1 : 0;
-	int iny = (yw - 1) >= 0 ? yw - 1 : 0;
-	fb[iny][inx] = ccolor;
+	int xw = ndcToInt(x, true);
+	int yw = ndcToInt(y, false);
+	point(xw, yw);
 }
 
 void glColor(double r, double g, double b)
@@ -85,18 +100,54 @@ void glColor(double r, double g, double b)
 
 void glLine(double x0, double y0, double x1, double y1)
 {
-	int x0w = ceil(vpx + (x0 + 1.0) * (vpw / 2.0));
-	int y0w = ceil(vpy + (y0 + 1.0) * (vph / 2.0));
-	int x1w = ceil(vpx + (x1 + 1.0) * (vpw / 2.0));
-	int y1w = ceil(vpy + (y1 + 1.0) * (vph / 2.0));
+	int x0w = ndcToInt(x0, true);
+	int y0w = ndcToInt(y0, false);
+	int x1w = ndcToInt(x1, true);
+	int y1w = ndcToInt(y1, false);
 
-	int dx = x1 - x0;
-	int dy = y1 - y0;
-	int yo = 1;
-	if (dy < 0) {
-		yo = -1;
-		dy = -dy;
+	int dx = abs(x1w - x0w);
+	int dy = abs(y1w - y0w);
+	int steep = dy > dx;
+	if (dy > dx) {
+		x0w ^= y0w;
+		y0w ^= x0w;
+		x0w ^= y0w;
+		x1w ^= y1w;
+		y1w ^= x1w;
+		x1w ^= y1w;
+		dy = abs(y1w - y0w);
+		dx = abs(x1w - x0w);
 	}
+
+	if (x0w > x1w) {
+		x0w ^= x1w;
+		x1w ^= x0w;
+		x0w ^= x1w;
+
+		y0w ^= y1w;
+		y1w ^= y0w;
+		y0w ^= y1w;
+		dy = abs(y1w - y0w);
+		dx = abs(x1w - x0w);
+	}
+
+	int y = y0w;
+	int increment = (y0w > y1w) ? -1 : 1;
+	int offset = 2 * dy - dx;
+	for (int x = x0w; x < x1w; x++) {
+		if (steep) {
+			point(y, x);
+		} else {
+			point(x, y);
+		}
+		if (offset > 0) {
+			y += increment;
+			offset -= 2 *dx;
+		}
+		offset += 2 * dy;
+	}
+
+
 
 }
 

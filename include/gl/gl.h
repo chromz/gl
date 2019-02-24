@@ -16,7 +16,10 @@ void glVertex(double x, double y);
 
 void glColor(double r, double g, double b);
 
+void glLine(double x0, double y0, double x1, double y1);
+
 void glFinish();
+
 
 
 #endif

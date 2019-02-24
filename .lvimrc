@@ -1,0 +1,4 @@
+
+
+let g:ale_c_build_dir='builddir'
+command! Debug :TermdebugCommand builddir/tests/gl/gl_test_bin
