@@ -4,22 +4,22 @@
 #include <stdlib.h>
 
 
-inline static void w_char(FILE *file, char c)
+static inline  void w_char(FILE *file, char c)
 {
 	fwrite(&c, 1, 1, file);
 }
 
-inline static void w_word(FILE *file, short h)
+static inline  void w_word(FILE *file, short h)
 {
 	fwrite(&h, 2, 1, file);
 }
 
-inline static void w_dword(FILE * file, long l)
+static inline  void w_dword(FILE * file, long l)
 {
 	fwrite(&l, 4, 1, file);
 }
 
-int bmp_write(int **fb, int width, int height, char *filename)
+int bmp_write(char *filename, int **fb, int width, int height)
 {
 
 	FILE *file;

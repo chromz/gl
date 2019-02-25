@@ -2,6 +2,7 @@
 #include "bmp/bmp.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -115,8 +116,6 @@ void glLine(double x0, double y0, double x1, double y1)
 		x1w ^= y1w;
 		y1w ^= x1w;
 		x1w ^= y1w;
-		dy = abs(y1w - y0w);
-		dx = abs(x1w - x0w);
 	}
 
 	if (x0w > x1w) {
@@ -127,10 +126,10 @@ void glLine(double x0, double y0, double x1, double y1)
 		y0w ^= y1w;
 		y1w ^= y0w;
 		y0w ^= y1w;
-		dy = abs(y1w - y0w);
-		dx = abs(x1w - x0w);
 	}
 
+	dy = abs(y1w - y0w);
+	dx = abs(x1w - x0w);
 	int y = y0w;
 	int increment = (y0w > y1w) ? -1 : 1;
 	int offset = 2 * dy - dx;
@@ -146,12 +145,20 @@ void glLine(double x0, double y0, double x1, double y1)
 		}
 		offset += 2 * dy;
 	}
+}
 
-
-
+int glObj(char *filename, double trX, double trY, double scX, double scY)
+{
+	FILE *file;
+	file = fopen(filename, "r");
+	if (file == NULL) {
+		return -1;
+	}
+	fclose(file);
+	return 1;
 }
 
 void glFinish(void)
 {
-	bmp_write(fb, fbwidth, fbheight, "canvas.bmp");
+	bmp_write("canvas.bmp", fb, fbwidth, fbheight);
 }
