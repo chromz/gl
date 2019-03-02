@@ -4,4 +4,4 @@ models_src = [
 
 models_lib = library('models', models_src,
   include_directories: gl_include_dirs,
-  dependencies: glib_dep)
+  link_with: ds_lib)

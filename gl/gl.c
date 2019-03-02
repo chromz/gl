@@ -1,5 +1,6 @@
 // Rodrigo Custodio
 #include "bmp/bmp.h"
+#include "models/models.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -149,6 +150,7 @@ void glLine(double x0, double y0, double x1, double y1)
 
 int glObj(char *filename, double trX, double trY, double scX, double scY)
 {
+	model_load(filename);
 	FILE *file;
 	file = fopen(filename, "r");
 	if (file == NULL) {

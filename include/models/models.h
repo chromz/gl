@@ -1,12 +1,12 @@
 #ifndef MODELS_LIB_H
 #define MODELS_LIB_H
 
+#include "ds/vector.h"
 #include <stdio.h>
-#include <gmodule.h>
 
 struct model {
-	GArray *vertices;
-	GArray *faces;
+	struct ds_vector *vertices;
+	struct ds_vector *faces;
 };
 
 struct vertex {
@@ -16,9 +16,9 @@ struct vertex {
 };
 
 struct face_data {
-	int vertex;
-	int texture;
-	int normal;
+	size_t vi;
+	size_t ti;
+	size_t ni;
 };
 
 struct face {
@@ -27,6 +27,6 @@ struct face {
 };
 
 
-struct model load_model(char *filename);
+struct model *model_load(char *filename);
 
 #endif

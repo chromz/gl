@@ -18,6 +18,8 @@ void glColor(double r, double g, double b);
 
 void glLine(double x0, double y0, double x1, double y1);
 
+int glObj(char *filename, double trX, double trY, double scX, double scY);
+
 void glFinish();
 
 

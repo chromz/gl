@@ -1,12 +1,29 @@
 
 #include "models/models.h"
+#include <stdlib.h>
+#include <stdio.h>
 
-struct model load_model(char *filename)
+
+
+static char *getline(FILE *file)
 {
-	struct model mdl = {
-		.vertices = g_array_new(FALSE, FALSE, sizeof(struct model)),
-		.faces = g_array_new(FALSE, FALSE, sizeof(struct face)),
-	};
 
+}
+
+
+struct model *model_load(char *filename)
+{
+	FILE *file = fopen(filename, "r");
+	if (file == NULL) {
+		return NULL;
+	}
+	struct model *mdl = malloc(sizeof(struct model));
+	mdl->vertices = ds_vector_new();
+	mdl->faces = ds_vector_new();
+	/* while ((read = )) { */
+	/* } */
+
+
+	fclose(file);
 	return mdl;
 }
