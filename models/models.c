@@ -100,13 +100,13 @@ struct model *model_load(char *filename)
 		char *tmp = line;
 		char *pch = strsep(&tmp, " ");
 		if (strcmp(pch, "v") == 0) {
-			struct v3 *vertex = malloc(sizeof(struct v3));
+			struct vec3 *vertex = malloc(sizeof(struct vec3));
 			pch = strsep(&tmp, " ");
-			vertex->x = strtod(pch, NULL);
+			vertex->x = strtof(pch, NULL);
 			pch = strsep(&tmp, " ");
-			vertex->y = strtod(pch, NULL);
+			vertex->y = strtof(pch, NULL);
 			pch = strsep(&tmp, " ");
-			vertex->z = strtod(pch, NULL);
+			vertex->z = strtof(pch, NULL);
 			if (errno) {
 				fclose(file);
 				free(vertex);

@@ -2,7 +2,10 @@
 #include "bmp/bmp.h"
 #include "gl/vector.h"
 #include "models/models.h"
+
+#include <float.h>
 #include <math.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +56,7 @@ void glClear()
 	}
 }
 
-void glClearColor(double r, double g, double b)
+void glClearColor(float r, float g, float b)
 {
 	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
 	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
@@ -74,7 +77,7 @@ static inline void point(int x, int y)
 	fb[y][x] = ccolor;
 }
 
-static int ndcToInt(double val, bool isXaxis)
+static int ndcToInt(float val, bool isXaxis)
 {
 	if (isXaxis) {
 		int xw = ceil(vpx + (val + 1.0) * (vpw / 2.0));
@@ -85,14 +88,14 @@ static int ndcToInt(double val, bool isXaxis)
 	}
 }
 
-void glVertex(double x, double y)
+void glVertex(float x, float y)
 {
 	int xw = ndcToInt(x, true);
 	int yw = ndcToInt(y, false);
 	point(xw, yw);
 }
 
-void glColor(double r, double g, double b)
+void glColor(float r, float g, float b)
 {
 	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
 	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
@@ -101,7 +104,7 @@ void glColor(double r, double g, double b)
 }
 
 
-void glLine(double x0, double y0, double x1, double y1)
+void glLine(float x0, float y0, float x1, float y1)
 {
 	int x0w = ndcToInt(x0, true);
 	int y0w = ndcToInt(y0, false);
@@ -149,7 +152,12 @@ void glLine(double x0, double y0, double x1, double y1)
 	}
 }
 
-int glObj(char *filename, double trX, double trY, double scX, double scY)
+static inline float transform(float val, float trn, float scl)
+{
+	return (val + trn) * scl;
+}
+
+int glObj(char *filename, float trX, float trY, float scX, float scY)
 {
 	struct model *m = model_load(filename);
 	if (m == NULL) {
@@ -161,16 +169,68 @@ int glObj(char *filename, double trX, double trY, double scX, double scY)
 			struct faced *from = ds_vector_get(f->data, j);
 			struct faced *to = ds_vector_get(f->data,
 							(j + 1) % f->facedim);
-			struct v3 *vec1 = ds_vector_get(m->vertices,
+			struct vec3 *v1 = ds_vector_get(m->vertices,
 							from->vi - 1);
-			struct v3 *vec2 = ds_vector_get(m->vertices,
+			struct vec3 *v2 = ds_vector_get(m->vertices,
 							to->vi - 1);
-			glLine((vec1->x + trX) * scX, (vec1->y + trY) * scY,
-			       (vec2->x + trX) * scX, (vec2->y + trY) * scY);
+			glLine(transform(v1->x, trX, scX),
+			       transform(v1->y, trY, scY),
+			       transform(v2->x, trX, scX),
+			       transform(v2->y, trY, scY));
 		}
 	}
 	model_free(m);
 	return 1;
+}
+
+static struct vec4 bounding(const float *ngon, size_t size)
+{
+	float minx = FLT_MAX;
+	float maxx = -FLT_MAX;
+	float miny = FLT_MAX;
+	float maxy = -FLT_MAX;
+	for (size_t i = 0; i < size; i += 2) {
+		if (ngon[i] < minx) {
+			minx = ngon[i];
+		}
+
+		if (ngon[i] > maxx) {
+			maxx = ngon[i];
+		}
+
+		if (ngon[i + 1] <  miny) {
+			miny = ngon[i + 1];
+		}
+
+		if (ngon[i + 1] > maxy) {
+			maxy = ngon[i + 1];
+		}
+	}
+	return (struct vec4) {
+		.x = minx,
+		.y = miny,
+		.z = maxx,
+		.w = maxy,
+	};
+}
+
+void glNgon(const float *ngon, size_t size)
+{
+	if (size % 2 != 0) {
+		return;
+	}
+	struct vec4 box = bounding(ngon, size);
+	glLine(box.x, box.y, box.x, box.w);
+	glLine(box.x, box.w, box.z, box.w);
+	glLine(box.x, box.y, box.z, box.y);
+	glLine(box.z, box.y, box.z, box.w);
+	for(size_t i = 0; i < size; i += 2) {
+		float x0 = ngon[i];
+		float y0 = ngon[i + 1];
+		float x1 = ngon[(i + 2) % size];
+		float y1 = ngon[(i + 3) % size];
+		glLine(x0, y0, x1, y1);
+	}
 }
 
 void glFinish(void)

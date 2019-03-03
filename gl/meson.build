@@ -1,7 +1,7 @@
 
 gl_src = [
   'gl.c',
-  'vector.c'
+  'vector.c',
 ]
 
 

@@ -21,8 +21,8 @@ static void rpoint(void)
 	
 	// Random points between [-1, 1]
 	srandom(time(NULL));
-	double x = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
-	double y = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
+	float x = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
+	float y = (random() /  (float) RAND_MAX) * 2.0  - 1.0;
 	glVertex(x, y);
 	glFinish();
 }
@@ -39,9 +39,9 @@ static void fourpoints(void)
 }
 
 
-static void draw_line(double startx, double starty, double endx, double endy)
+static void draw_line(float startx, float starty, float endx, float endy)
 {
-	double delta = FEPSILON;
+	float delta = FEPSILON;
 	if (fabs(endx - startx) <= FEPSILON &&
 		fabs(endy - starty) <= FEPSILON) {
 		glVertex(startx, endx);
@@ -49,22 +49,22 @@ static void draw_line(double startx, double starty, double endx, double endy)
 	}
 
 	if (fabs(endx - startx) <= FEPSILON) {
-		double slope = (endx - startx) / (endy - starty);
+		float slope = (endx - startx) / (endy - starty);
 		if (endy - starty < 0) {
 			delta *= -1.0;
 		}
 
-		for (double y = starty; fabs(endy - y) > FEPSILON; y += delta) {
+		for (float y = starty; fabs(endy - y) > FEPSILON; y += delta) {
 			glVertex(slope * (y - starty) + startx, y);
 		}
 
 	} else {
-		double slope = (endy - starty) / (endx - startx);
+		float slope = (endy - starty) / (endx - startx);
 		if (endx - startx < 0) {
 			delta *= -1.0;
 		}
 
-		for (double x = startx; fabs(endx - x) > FEPSILON; x += delta) {
+		for (float x = startx; fabs(endx - x) > FEPSILON; x += delta) {
 			glVertex(x, slope * (x - startx) + starty);
 		}
 	}
@@ -107,9 +107,9 @@ static void gray_static(void)
 {
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
-	for (double x = -1.0; x <= 1.0; x += 0.00333) {
-		for (double y = -1.0; y <= 1.0; y += 0.00333) {
-			double exp = (random() /  (float) RAND_MAX);
+	for (float x = -1.0; x <= 1.0; x += 0.00333) {
+		for (float y = -1.0; y <= 1.0; y += 0.00333) {
+			float exp = (random() /  (float) RAND_MAX);
 			if (exp <= 0.5) {
 				glColor(1.0, 1.0, 1.0);
 			} else {
@@ -125,11 +125,11 @@ static void rgb_static(void)
 {
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
-	for (double x = -1.0; x <= 1.0; x += 0.00333) {
-		for (double y = -1.0; y <= 1.0; y += 0.005) {
-			double r = (random() /  (float) RAND_MAX);
-			double g = (random() /  (float) RAND_MAX);
-			double b = (random() /  (float) RAND_MAX);
+	for (float x = -1.0; x <= 1.0; x += 0.00333) {
+		for (float y = -1.0; y <= 1.0; y += 0.005) {
+			float r = (random() /  (float) RAND_MAX);
+			float g = (random() /  (float) RAND_MAX);
+			float b = (random() /  (float) RAND_MAX);
 			glColor(r, g, b);
 			glVertex(x, y);
 		}
@@ -140,17 +140,17 @@ static void rgb_static(void)
 
 static void fill(int width, int height)
 {
-	double dx = 2.0 / (width + 1);
-	double dy = 2.0 / (height + 1);
-	for (double x = -1.0; x <= 1.0; x += dx) {
-		for (double y = -1.0; y <= 1.0; y += dy) {
+	float dx = 2.0 / (width + 1);
+	float dy = 2.0 / (height + 1);
+	for (float x = -1.0; x <= 1.0; x += dx) {
+		for (float y = -1.0; y <= 1.0; y += dy) {
 			glVertex(x, y);
 		}
 	}
 
 }
 
-static void skyscrapper(double offset)
+static void skyscrapper(float offset)
 {
 	draw_line(offset + 0.2, -0.32291666666, offset + 0.2875, -0.32291666666);
 	draw_line(offset + 0.2, -0.31, offset + 0.2875, -0.31);
@@ -221,11 +221,11 @@ void stars(void)
 	glCreateWindow(600, 400);
 	srandom(time(NULL));
 	glColor(1.0, 1.0, 1.0);
-	for (double x = -1.0; x <= 1.0; x += 0.00333) {
-		for (double y = -1.0; y <= 1.0; y += 0.005) {
-			double paint = (random() /  (float) RAND_MAX);
+	for (float x = -1.0; x <= 1.0; x += 0.00333) {
+		for (float y = -1.0; y <= 1.0; y += 0.005) {
+			float paint = (random() /  (float) RAND_MAX);
 			if (paint < 0.001) {
-				double big = (random() /  (float) RAND_MAX);
+				float big = (random() /  (float) RAND_MAX);
 				if (big < 0.09) {
 					glVertex(x, y);
 					glVertex(x + 0.00333, y);
