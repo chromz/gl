@@ -1,6 +1,7 @@
 // Rodrigo Custodio
 
 #define _DEFAULT_SOURCE
+#include "gl/vector.h"
 #include "models/models.h"
 #include <errno.h>
 #include <inttypes.h>

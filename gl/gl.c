@@ -1,6 +1,6 @@
 // Rodrigo Custodio
 #include "bmp/bmp.h"
-#include "gl/gl.h"
+#include "gl/vector.h"
 #include "models/models.h"
 #include <math.h>
 #include <stdbool.h>

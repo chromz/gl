@@ -1,7 +1,6 @@
 #ifndef MODELS_LIB_H
 #define MODELS_LIB_H
 
-#include "gl/gl.h"
 #include "ds/vector.h"
 #include <stdio.h>
 
