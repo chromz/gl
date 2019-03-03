@@ -12,4 +12,6 @@ struct v3 {
 	double z;
 };
 
+
+
 #endif

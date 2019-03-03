@@ -1,6 +1,7 @@
 
 gl_src = [
-  'gl.c'
+  'gl.c',
+  'vector.c'
 ]
 
 
