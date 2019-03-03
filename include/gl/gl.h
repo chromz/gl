@@ -2,6 +2,21 @@
 
 #ifndef GL_H
 #define GL_H
+
+#include <stddef.h>
+
+struct v2 {
+	double x;
+	double y;
+};
+
+struct v3 {
+	double x;
+	double y;
+	double z;
+};
+
+
 void glInit();
 
 void glCreateWindow(int width, int height);

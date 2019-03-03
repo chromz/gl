@@ -1,4 +1,7 @@
-project('sr1', 'c')
+project('sr1', 'c',
+  default_options:[
+      'default_library=static'
+    ])
 
 gl_include_dirs = include_directories('include')
 add_project_arguments('-Wpedantic', language : 'c')

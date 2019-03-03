@@ -1,4 +1,5 @@
 
 
 let g:ale_c_build_dir='builddir'
-command! Debug :TermdebugCommand builddir/tests/gl/gl_test_bin
+command! Debug :TermdebugCommand builddir/labs/sr3 /home/chromz/Documents/UVG/Graficas/test.obj
+command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin

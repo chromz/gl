@@ -1,1 +1,8 @@
-subdir('hw1')
+executable('hw1', 'hw1/hw1.c',
+  include_directories : gl_include_dirs,
+  link_with : gl_lib)
+
+executable('sr3', 'sr3/sr3.c',
+  include_directories : gl_include_dirs,
+  link_with : gl_lib)
+
