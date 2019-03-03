@@ -68,6 +68,9 @@ void glClearColor(double r, double g, double b)
 
 static inline void point(int x, int y)
 {
+	if (x >= vpw || y >= vph) {
+		return;
+	}
 	fb[y][x] = ccolor;
 }
 
@@ -84,9 +87,6 @@ static int ndcToInt(double val, bool isXaxis)
 
 void glVertex(double x, double y)
 {
-	if (fabs(x) > 1.0 || fabs(y) > 1.0) {
-		return;
-	}
 	int xw = ndcToInt(x, true);
 	int yw = ndcToInt(y, false);
 	point(xw, yw);
