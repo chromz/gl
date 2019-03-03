@@ -176,4 +176,8 @@ int glObj(char *filename, double trX, double trY, double scX, double scY)
 void glFinish(void)
 {
 	bmp_write("canvas.bmp", fb, fbwidth, fbheight);
+	for(size_t i = 0; i < vph; i++) {
+		free(fb[i]);
+	}
+	free(fb);
 }
