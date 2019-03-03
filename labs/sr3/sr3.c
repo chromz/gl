@@ -4,16 +4,11 @@
 #include <stdio.h>
 
 
-int main(int argc, char **argv)
+int main(void)
 {
-	if (argc != 2) {
-		printf("Usage: %s <file>\n", argv[0]);
-		printf("Output will always be on canvas.bmp\n");
-		return 1;
-	}
 	glCreateWindow(800, 600);
 	glColor(1.0, 1.0, 1.0);
-	glObj(argv[1], 0.0, 0.0, .3, .3);
+	glObj("labs/heli.obj", 0.0, 0.0, .09, .09);
 	glFinish();
 	return 0;
 }
