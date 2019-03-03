@@ -8,6 +8,7 @@
 struct model {
 	struct ds_vector *vertices;
 	struct ds_vector *faces;
+	size_t facedim;
 };
 
 struct face {

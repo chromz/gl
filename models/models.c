@@ -45,10 +45,11 @@ static void elm_free(void *fptr)
 	free(fptr);
 }
 
-static void parse_faces(struct ds_vector *faces, char *line)
+static size_t parse_faces(struct ds_vector *faces, char *line)
 {
 
 	char *val = strsep(&line, " ");
+	size_t facedim = 0;
 	while (val != NULL) {
 		char  *res = strsep(&val, "/");
 		struct face *f = malloc(sizeof(struct face));
@@ -61,9 +62,15 @@ static void parse_faces(struct ds_vector *faces, char *line)
 		}
 		res = strsep(&val, "/");
 		f->ni = strtoimax(res, NULL, 0);
+		if (errno) {
+			free(f);
+			return -1;
+		}
 		ds_vector_push_back(faces, f);
 		val = strsep(&line, " ");
+		facedim++;
 	}
+	return facedim;
 }
 
 
@@ -76,6 +83,7 @@ struct model *model_load(char *filename)
 	struct model *mdl = malloc(sizeof(struct model));
 	mdl->vertices = ds_vector_new_with_free(elm_free);
 	mdl->faces = ds_vector_new_with_free(elm_free);
+	mdl->facedim = 0;
 	char *line;
 	while ((line = readline(file)) != NULL) {
 		char *tmp = line;
@@ -102,7 +110,16 @@ struct model *model_load(char *filename)
 			// Normals
 		} else if (strcmp(pch, "f") == 0) {
 			// Face
-			parse_faces(mdl->faces, tmp);
+			size_t dim = parse_faces(mdl->faces, tmp);
+			if (errno) {
+				fclose(file);
+				free(line);
+				model_free(mdl);
+				return NULL;
+			}
+			if (!mdl->facedim) {
+				mdl->facedim = dim;
+			}
 		}
 		free(line);
 	}

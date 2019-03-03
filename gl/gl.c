@@ -155,23 +155,19 @@ int glObj(char *filename, double trX, double trY, double scX, double scY)
 	if (m == NULL) {
 		return -1;
 	}
-	if (m->faces->size % 3 != 0) {
-		model_free(m);
-		return -1;
-	}
-	for (size_t i = 0; i < m->faces->size - 3; i++) {
-		struct face *fo = ds_vector_get(m->faces, i);
-		struct face *fm = ds_vector_get(m->faces, i + 1);
-		struct face *fe = ds_vector_get(m->faces, i + 2);
-		struct v3 *vec1 = ds_vector_get(m->vertices, fo->vi - 1);
-		struct v3 *vec2 = ds_vector_get(m->vertices, fm->vi - 1);
-		struct v3 *vec3 = ds_vector_get(m->vertices, fe->vi - 1);
-		glLine((vec1->x + trX) * scX, (vec1->y + trY) * scY,
-		       (vec2->x + trX) * scX, (vec2->y + trY) * scY);
-		glLine((vec2->x + trX) * scX, (vec2->y + trY) * scY,
-		       (vec3->x + trX) * scX, (vec3->y + trY) * scY);
-		glLine((vec3->x + trX) * scX, (vec3->y + trY) * scY,
-		       (vec1->x + trX) * scX, (vec1->y + trY) * scY);
+	for (size_t i = 0; i < m->faces->size; i += m->facedim) {
+		for (size_t j = 0; j <  m->facedim; j++) {
+			size_t toindex= (i + j + 1) -
+					(m->facedim * ((j +1) / m->facedim));
+			struct face *from = ds_vector_get(m->faces, i + j);
+			struct face *to = ds_vector_get(m->faces, toindex);
+			struct v3 *vec1 = ds_vector_get(m->vertices,
+							from->vi - 1);
+			struct v3 *vec2 = ds_vector_get(m->vertices,
+							to->vi - 1);
+			glLine((vec1->x + trX) * scX, (vec1->y + trY) * scY,
+			       (vec2->x + trX) * scX, (vec2->y + trY) * scY);
+		}
 	}
 	model_free(m);
 	return 1;
