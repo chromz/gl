@@ -155,12 +155,12 @@ int glObj(char *filename, double trX, double trY, double scX, double scY)
 	if (m == NULL) {
 		return -1;
 	}
-	for (size_t i = 0; i < m->faces->size; i += m->facedim) {
-		for (size_t j = 0; j <  m->facedim; j++) {
-			size_t toindex= (i + j + 1) -
-					(m->facedim * ((j +1) / m->facedim));
-			struct face *from = ds_vector_get(m->faces, i + j);
-			struct face *to = ds_vector_get(m->faces, toindex);
+	for (size_t i = 0; i < m->faces->size; i++) {
+		struct face *f = ds_vector_get(m->faces, i);
+		for (size_t j = 0; j <  f->facedim; j++) {
+			struct faced *from = ds_vector_get(f->data, j);
+			struct faced *to = ds_vector_get(f->data,
+							(j + 1) % f->facedim);
 			struct v3 *vec1 = ds_vector_get(m->vertices,
 							from->vi - 1);
 			struct v3 *vec2 = ds_vector_get(m->vertices,

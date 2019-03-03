@@ -11,9 +11,9 @@ int main(int argc, char **argv)
 		printf("Output will always be on canvas.bmp\n");
 		return 1;
 	}
-	glCreateWindow(600, 400);
+	glCreateWindow(800, 600);
 	glColor(1.0, 1.0, 1.0);
-	glObj(argv[1], 0.0, 0.0, .5, .5);
+	glObj(argv[1], 0.0, 0.0, .3, .3);
 	glFinish();
 	return 0;
 }
