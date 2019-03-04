@@ -80,10 +80,10 @@ static inline void point(int x, int y)
 static int ndcToInt(float val, bool isXaxis)
 {
 	if (isXaxis) {
-		int xw = ceil(vpx + (val + 1.0) * (vpw / 2.0));
+		int xw = round(vpx + (val + 1.0) * (vpw / 2.0));
 		return (xw - 1) >= 0 ? xw - 1 : 0;
 	} else {
-		int yw = ceil(vpy + (val + 1.0) * (vph / 2.0));
+		int yw = round(vpy + (val + 1.0) * (vph / 2.0));
 		return (yw - 1) >= 0 ? yw - 1 : 0;
 	}
 }
@@ -278,11 +278,12 @@ void glNgon(const float *ngon, size_t size)
 	int miny = ndcToInt(box.y, false);
 	int maxx = ndcToInt(box.z, true);
 	int maxy = ndcToInt(box.w, false);
-	for (int y = miny; y <= maxy; y++) {
-		for (int x = minx; x <= maxx; x++) {
-			if (isInside(intToNdc(x, true), intToNdc(y, false),
-				     ngon, size)) {
-				point(x, y);
+	float dx = (box.z - box.x) / (maxx - minx);
+	float dy = (box.w - box.y) / (maxy - miny);
+	for (float y = box.y; y < box.w; y += dy) {
+		for (float x = box.x; x < box.z; x += dx) {
+			if (isInside(x, y, ngon, size)) {
+				glVertex(x, y);
 			}
 		}
 	}
