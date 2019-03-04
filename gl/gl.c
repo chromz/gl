@@ -278,12 +278,16 @@ void glNgon(const float *ngon, size_t size)
 	int maxy = ndcToInt(box.w, false);
 	float dx = (box.z - box.x) / (maxx - minx);
 	float dy = (box.w - box.y) / (maxy - miny);
-	for (float y = box.y; y < box.w; y += dy) {
-		for (float x = box.x; x < box.z; x += dx) {
+	float y = box.y;
+	for (int i = miny; i < maxy; i++) {
+		float x = box.x;
+		for (int j = minx; j < maxx; j++) {
 			if (isInside(x, y, ngon, size)) {
 				glVertex(x, y);
 			}
+			x += dx;
 		}
+		y += dy;
 	}
 
 }
