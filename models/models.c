@@ -5,8 +5,8 @@
 #include "models/models.h"
 #include <errno.h>
 #include <inttypes.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
@@ -88,7 +88,7 @@ static void parse_faces(struct ds_vector *faces, char *line)
 
 struct model *model_load(char *filename)
 {
-	FILE *file = fopen(filename, "r");
+	FILE *file = fopen(filename, "re");
 	if (file == NULL) {
 		return NULL;
 	}
