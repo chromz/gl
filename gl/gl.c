@@ -24,7 +24,14 @@ static int ccolor = 0;
 
 void glInit(void)
 {
-	// TODO
+	// TODO initialize something
+}
+
+static inline void swap(int *a, int *b)
+{
+	int temp = *a;
+	*a = *b;
+	*b = temp;
 }
 
 void glCreateWindow(int width, int height)
@@ -58,10 +65,10 @@ void glClear()
 
 void glClearColor(float r, float g, float b)
 {
-	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
-	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
-	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
-	int color = (rint << 16) + (gint << 8) + bint;
+	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
+	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
+	unsigned bint = floor(b >= 1.0 ? 255 : b * 255.0);
+	int color = (rint << 16u) + (gint << 8u) + bint;
 	for(int i = 0; i < fbheight; i++) {
 		for (int j = 0; j < fbwidth; j++) {
 			fb[i][j] = color;
@@ -80,12 +87,12 @@ static inline void point(int x, int y)
 static int ndcToInt(float val, bool isXaxis)
 {
 	if (isXaxis) {
-		int xw = round(vpx + (val + 1.0) * (vpw / 2.0));
+		int xw = (int) round(vpx + (val + 1.0) * (vpw / 2.0));
 		return (xw - 1) >= 0 ? xw - 1 : 0;
-	} else {
-		int yw = round(vpy + (val + 1.0) * (vph / 2.0));
-		return (yw - 1) >= 0 ? yw - 1 : 0;
 	}
+
+	int yw = (int) round(vpy + (val + 1.0) * (vph / 2.0));
+	return (yw - 1) >= 0 ? yw - 1 : 0;
 }
 
 /* static float intToNdc(int val, bool isXaxis) */
@@ -106,12 +113,11 @@ void glVertex(float x, float y)
 
 void glColor(float r, float g, float b)
 {
-	int rint = floor(r >= 1.0 ? 255 : r * 255.0);
-	int gint = floor(g >= 1.0 ? 255 : g * 255.0);
-	int bint = floor(b >= 1.0 ? 255 : b * 255.0);
-	ccolor = (rint << 16) + (gint << 8) + bint;
+	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
+	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
+	unsigned bint = floor(b >= 1.0 ? 255 : b * 255.0);
+	ccolor = (rint << 16u) + (gint << 8u) + bint;
 }
-
 
 void glLine(float x0, float y0, float x1, float y1)
 {
@@ -124,22 +130,13 @@ void glLine(float x0, float y0, float x1, float y1)
 	int dy = abs(y1w - y0w);
 	int steep = dy > dx;
 	if (dy > dx) {
-		x0w ^= y0w;
-		y0w ^= x0w;
-		x0w ^= y0w;
-		x1w ^= y1w;
-		y1w ^= x1w;
-		x1w ^= y1w;
+		swap(&x0w, &y0w);
+		swap(&x1w, &y1w);
 	}
 
 	if (x0w > x1w) {
-		x0w ^= x1w;
-		x1w ^= x0w;
-		x0w ^= x1w;
-
-		y0w ^= y1w;
-		y1w ^= y0w;
-		y0w ^= y1w;
+		swap(&x0w, &x1w);
+		swap(&y0w, &y1w);
 	}
 
 	dy = abs(y1w - y0w);
@@ -223,16 +220,16 @@ static struct vec4 bounding(const float *points, size_t size)
 	};
 }
 
-static inline int getPoint(int x, int y)
-{
-	if (x >= vpw && y < vph) {
-		return fb[vpw -1][y];
-	}
-	if (x < vpw && y >= vph) {
-		return fb[x][vph - 1];
-	}
-	return fb[y][x];
-}
+/* static inline int getPoint(int x, int y) */
+/* { */
+/* 	if (x >= vpw && y < vph) { */
+/* 		return fb[vpw -1][y]; */
+/* 	} */
+/* 	if (x < vpw && y >= vph) { */
+/* 		return fb[x][vph - 1]; */
+/* 	} */
+/* 	return fb[y][x]; */
+/* } */
 
 static bool isInside(const float x, const float y,
 		     const float *ngon, size_t size)
@@ -247,9 +244,9 @@ static bool isInside(const float x, const float y,
 		if ((y0 < y && y1 >= y) ||
 		    (y1 < y && y0 >= y)) {
 			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
-			odd ^= intercept < x;
+			odd ^= (unsigned) (intercept < x);
 		}
-	}	
+	}
 	return odd;
 }
 
