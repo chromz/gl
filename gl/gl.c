@@ -88,14 +88,14 @@ static int ndcToInt(float val, bool isXaxis)
 	}
 }
 
-static float intToNdc(int val, bool isXaxis)
-{
-	if (isXaxis) {
-		return (val - vpx) * (2.0 / vpw) - 1.0;
-	} else {
-		return (val - vpy) * (2.0 / vph) - 1.0;
-	}
-}
+/* static float intToNdc(int val, bool isXaxis) */
+/* { */
+/* 	if (isXaxis) { */
+/* 		return (val - vpx) * (2.0 / vpw) - 1.0; */
+/* 	} else { */
+/* 		return (val - vpy) * (2.0 / vph) - 1.0; */
+/* 	} */
+/* } */
 
 void glVertex(float x, float y)
 {
@@ -237,21 +237,19 @@ static inline int getPoint(int x, int y)
 static bool isInside(const float x, const float y,
 		     const float *ngon, size_t size)
 {
-	// TODO understand this thing
 	// http://alienryderflex.com/polygon/
-	int i, j = 0;
 	bool odd = false;
-	for (i = 0, j = size - 2; i < size; i += 2) {
-		if ((ngon[i + 1] < y && ngon[j + 1] >= y) ||
-		    (ngon[j + 1] < y && ngon[i + 1] >= y)) {
-			if (ngon[i] + (y - ngon[i + 1]) /
-			    (ngon[j + 1] - ngon[i + 1]) *
-			    (ngon[j] - ngon[i]) < x) {
-				odd = !odd;
-			}
+	for (size_t i = 0; i < size; i += 2) {
+		float x0 = ngon[i];
+		float y0 = ngon[i + 1];
+		float x1 = ngon[(i + 2) % size];
+		float y1 = ngon[(i + 3) % size];
+		if ((y0 < y && y1 >= y) ||
+		    (y1 < y && y0 >= y)) {
+			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
+			odd ^= intercept < x;
 		}
-		j = i;
-	}
+	}	
 	return odd;
 }
 
