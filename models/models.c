@@ -63,7 +63,7 @@ static void parse_faces(struct ds_vector *faces, char *line)
 	f->facedim = 0;
 	while (val != NULL) {
 		char  *res = strsep(&val, "/");
-		struct faced *data = malloc(sizeof(struct faced));
+		struct facetup *data = malloc(sizeof(struct facetup));
 		data->vi = strtoimax(res, NULL, 0);
 		res = strsep(&val, "/");
 		if (strcmp(res, "") == 0) {

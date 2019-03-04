@@ -5,12 +5,12 @@
 
 
 
-inline float vector_dot(const struct vec3 *a, const struct vec3 *b)
+inline float vec3_dot(const struct vec3 *a, const struct vec3 *b)
 {
 	return a->x * b->x + a->y * b->y + a->z * b->z;
 }
 
-struct vec3 vector_sum(const struct vec3 *a, const struct vec3 *b)
+struct vec3 vec3_sum(const struct vec3 *a, const struct vec3 *b)
 {
 	struct vec3 res = {
 		.x = a->x + b->x,
@@ -20,7 +20,7 @@ struct vec3 vector_sum(const struct vec3 *a, const struct vec3 *b)
 	return res;
 }
 
-struct vec3 vector_cross(const struct vec3 *a, const struct vec3 *b)
+struct vec3 vec3_cross(const struct vec3 *a, const struct vec3 *b)
 {
 	struct vec3 res = {
 		.x = a->y * b->z - a->z * b->y,

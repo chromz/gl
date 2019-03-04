@@ -158,37 +158,6 @@ void glLine(float x0, float y0, float x1, float y1)
 	}
 }
 
-static inline float transform(float val, float trn, float scl)
-{
-	return (val) * scl + trn;
-}
-
-int glObj(char *filename, float trX, float trY, float scX, float scY)
-{
-	struct model *m = model_load(filename);
-	if (m == NULL) {
-		return -1;
-	}
-	for (size_t i = 0; i < m->faces->size; i++) {
-		struct face *f = ds_vector_get(m->faces, i);
-		for (size_t j = 0; j <  f->facedim; j++) {
-			struct faced *from = ds_vector_get(f->data, j);
-			struct faced *to = ds_vector_get(f->data,
-							(j + 1) % f->facedim);
-			struct vec3 *v1 = ds_vector_get(m->vertices,
-							from->vi - 1);
-			struct vec3 *v2 = ds_vector_get(m->vertices,
-							to->vi - 1);
-			glLine(transform(v1->x, trX, scX),
-			       transform(v1->y, trY, scY),
-			       transform(v2->x, trX, scX),
-			       transform(v2->y, trY, scY));
-		}
-	}
-	model_free(m);
-	return 1;
-}
-
 static struct vec4 bounding(const float *points, size_t size)
 {
 	float minx = FLT_MAX;
@@ -218,6 +187,56 @@ static struct vec4 bounding(const float *points, size_t size)
 		.z = maxx,
 		.w = maxy,
 	};
+}
+
+static inline float transform(float val, float trn, float scl)
+{
+	return (val) * scl + trn;
+}
+
+static void drawNgonFace(struct model *m, struct face *f, float trX, float trY,
+			 float scX, float scY)
+{
+	for (size_t j = 0; j <  f->facedim; j++) {
+		struct facetup *from = ds_vector_get(f->data, j);
+		struct facetup *to = ds_vector_get(f->data,
+						(j + 1) % f->facedim);
+		struct vec3 *v1 = ds_vector_get(m->vertices,
+						from->vi - 1);
+		struct vec3 *v2 = ds_vector_get(m->vertices,
+						to->vi - 1);
+		glLine(transform(v1->x, trX, scX),
+		       transform(v1->y, trY, scY),
+		       transform(v2->x, trX, scX),
+		       transform(v2->y, trY, scY));
+	}
+}
+
+static void drawTriangle(struct model *m, struct face *f, float trX, float trY,
+			 float scX, float scY)
+{
+	// TODO some barycentric magic here
+	/* struct vec4 box = bounding(); */
+}
+
+int glObj(char *filename, float trX, float trY, float scX, float scY)
+{
+	struct model *m = model_load(filename);
+	if (m == NULL) {
+		return -1;
+	}
+	// It's a triangle
+	for (size_t i = 0; i < m->faces->size; i++) {
+		struct face *f = ds_vector_get(m->faces, i);
+		if (f->facedim == 3) {
+			// It's a triangle
+			drawNgonFace(m, f, trX, trY, scX, scY);
+		} else {
+			drawNgonFace(m, f, trX, trY, scX, scY);
+		}
+	}
+	model_free(m);
+	return 1;
 }
 
 /* static inline int getPoint(int x, int y) */
@@ -257,10 +276,6 @@ void glNgon(const float *ngon, size_t size)
 	}
 	struct vec4 box = bounding(ngon, size);
 	// Just for testing the bounding box
-	/* glLine(box.x, box.y, box.x, box.w); */
-	/* glLine(box.x, box.w, box.z, box.w); */
-	/* glLine(box.x, box.y, box.z, box.y); */
-	/* glLine(box.z, box.y, box.z, box.w); */
 	for(size_t i = 0; i < size; i += 2) {
 		float x0 = ngon[i];
 		float y0 = ngon[i + 1];

@@ -52,11 +52,13 @@ struct vec2 {
 	float x, y;
 };
 
-float vector_dot(const struct vec3 *a, const struct vec3 *b);
+float vec3_dot(const struct vec3 *a, const struct vec3 *b);
 
-struct vec3 vector_sum(const struct vec3 *a, const struct vec3 *b);
+struct vec3 vec3_sum(const struct vec3 *a, const struct vec3 *b);
 
-struct vec3 vector_cross(const struct vec3 *a, const struct vec3 *b);
+struct vec3 vec3_sub(const struct vec3 *a, const struct vec3 *b);
+
+struct vec3 vec3_cross(const struct vec3 *a, const struct vec3 *b);
 
 
 #endif

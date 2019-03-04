@@ -9,7 +9,7 @@ struct model {
 	struct ds_vector *faces;
 };
 
-struct faced {
+struct facetup {
 	int vi;
 	int ti;
 	int ni;
