@@ -160,7 +160,7 @@ void glLine(float x0, float y0, float x1, float y1)
 
 static inline float transform(float val, float trn, float scl)
 {
-	return (val + trn) * scl;
+	return (val) * scl + trn;
 }
 
 int glObj(char *filename, float trX, float trY, float scX, float scY)
