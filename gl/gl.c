@@ -88,6 +88,15 @@ static int ndcToInt(float val, bool isXaxis)
 	}
 }
 
+static float intToNdc(int val, bool isXaxis)
+{
+	if (isXaxis) {
+		return (val - vpx) * (2.0 / vpw) - 1.0;
+	} else {
+		return (val - vpy) * (2.0 / vph) - 1.0;
+	}
+}
+
 void glVertex(float x, float y)
 {
 	int xw = ndcToInt(x, true);
@@ -183,27 +192,27 @@ int glObj(char *filename, float trX, float trY, float scX, float scY)
 	return 1;
 }
 
-static struct vec4 bounding(const float *ngon, size_t size)
+static struct vec4 bounding(const float *points, size_t size)
 {
 	float minx = FLT_MAX;
 	float maxx = -FLT_MAX;
 	float miny = FLT_MAX;
 	float maxy = -FLT_MAX;
 	for (size_t i = 0; i < size; i += 2) {
-		if (ngon[i] < minx) {
-			minx = ngon[i];
+		if (points[i] < minx) {
+			minx = points[i];
 		}
 
-		if (ngon[i] > maxx) {
-			maxx = ngon[i];
+		if (points[i] > maxx) {
+			maxx = points[i];
 		}
 
-		if (ngon[i + 1] <  miny) {
-			miny = ngon[i + 1];
+		if (points[i + 1] <  miny) {
+			miny = points[i + 1];
 		}
 
-		if (ngon[i + 1] > maxy) {
-			maxy = ngon[i + 1];
+		if (points[i + 1] > maxy) {
+			maxy = points[i + 1];
 		}
 	}
 	return (struct vec4) {
@@ -214,16 +223,49 @@ static struct vec4 bounding(const float *ngon, size_t size)
 	};
 }
 
+static inline int getPoint(int x, int y)
+{
+	if (x >= vpw && y < vph) {
+		return fb[vpw -1][y];
+	}
+	if (x < vpw && y >= vph) {
+		return fb[x][vph - 1];
+	}
+	return fb[y][x];
+}
+
+static bool isInside(const float x, const float y,
+		     const float *ngon, size_t size)
+{
+	// TODO understand this thing
+	// http://alienryderflex.com/polygon/
+	int i, j = 0;
+	bool odd = false;
+	for (i = 0, j = size - 2; i < size; i += 2) {
+		if ((ngon[i + 1] < y && ngon[j + 1] >= y) ||
+		    (ngon[j + 1] < y && ngon[i + 1] >= y)) {
+			if (ngon[i] + (y - ngon[i + 1]) /
+			    (ngon[j + 1] - ngon[i + 1]) *
+			    (ngon[j] - ngon[i]) < x) {
+				odd = !odd;
+			}
+		}
+		j = i;
+	}
+	return odd;
+}
+
 void glNgon(const float *ngon, size_t size)
 {
 	if (size % 2 != 0) {
 		return;
 	}
 	struct vec4 box = bounding(ngon, size);
-	glLine(box.x, box.y, box.x, box.w);
-	glLine(box.x, box.w, box.z, box.w);
-	glLine(box.x, box.y, box.z, box.y);
-	glLine(box.z, box.y, box.z, box.w);
+	// Just for testing the bounding box
+	/* glLine(box.x, box.y, box.x, box.w); */
+	/* glLine(box.x, box.w, box.z, box.w); */
+	/* glLine(box.x, box.y, box.z, box.y); */
+	/* glLine(box.z, box.y, box.z, box.w); */
 	for(size_t i = 0; i < size; i += 2) {
 		float x0 = ngon[i];
 		float y0 = ngon[i + 1];
@@ -231,6 +273,20 @@ void glNgon(const float *ngon, size_t size)
 		float y1 = ngon[(i + 3) % size];
 		glLine(x0, y0, x1, y1);
 	}
+
+	int minx = ndcToInt(box.x, true);
+	int miny = ndcToInt(box.y, false);
+	int maxx = ndcToInt(box.z, true);
+	int maxy = ndcToInt(box.w, false);
+	for (int y = miny; y <= maxy; y++) {
+		for (int x = minx; x <= maxx; x++) {
+			if (isInside(intToNdc(x, true), intToNdc(y, false),
+				     ngon, size)) {
+				point(x, y);
+			}
+		}
+	}
+
 }
 
 void glFinish(void)

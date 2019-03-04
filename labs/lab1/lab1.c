@@ -35,6 +35,7 @@ int main(void)
 	normalize_polygon(polygon1, 20, width, height);
 	glNgon(polygon1, 20);
 
+	glColor(1.0, 0.0, 1.0);
 	float polygon2[8] = {
 		321.0, 335.0,
 		288.0, 286.0,
@@ -44,6 +45,7 @@ int main(void)
 	normalize_polygon(polygon2, 8, width, height);
 	glNgon(polygon2, 8);
 
+	glColor(1.0, 0.0, 0.0);
 	float polygon3[6] = {
 		377.0, 249.0,
 		411.0, 197.0,
@@ -52,6 +54,7 @@ int main(void)
 	normalize_polygon(polygon3, 6, width, height);
 	glNgon(polygon3, 6);
 
+	glColor(0.0, 1.0, 1.0);
 	float polygon4[36] = {
 		413.0, 177.0,
 		448.0, 159.0,
@@ -75,6 +78,7 @@ int main(void)
 	normalize_polygon(polygon4, 36, width, height);
 	glNgon(polygon4, 36);
 
+	glColor(0.0, 0.0, 1.0);
 	float polygon5[8] = {
 		682.0, 175.0,
 		708.0, 120.0,
