@@ -194,6 +194,15 @@ static inline float transform(float val, float trn, float scl)
 	return (val) * scl + trn;
 }
 
+static inline struct vec3 vec3Transform(struct vec3 *v, float trX, float trY,
+			   float scX, float scY)
+{
+	return (struct vec3) {
+		.x = transform(v->x, trX, scX),
+		.y = transform(v->y, trY, scY),
+	};
+}
+
 static void drawNgonFace(struct model *m, struct face *f, float trX, float trY,
 			 float scX, float scY)
 {
@@ -201,22 +210,63 @@ static void drawNgonFace(struct model *m, struct face *f, float trX, float trY,
 		struct facetup *from = ds_vector_get(f->data, j);
 		struct facetup *to = ds_vector_get(f->data,
 						(j + 1) % f->facedim);
-		struct vec3 *v1 = ds_vector_get(m->vertices,
-						from->vi - 1);
-		struct vec3 *v2 = ds_vector_get(m->vertices,
-						to->vi - 1);
-		glLine(transform(v1->x, trX, scX),
-		       transform(v1->y, trY, scY),
-		       transform(v2->x, trX, scX),
-		       transform(v2->y, trY, scY));
+		struct vec3 v1 = vec3Transform(ds_vector_get(m->vertices,
+						from->vi - 1), trX, trY, scX,
+						scY);
+		struct vec3 v2 = vec3Transform(ds_vector_get(m->vertices,
+						to->vi - 1), trX, trY, scX,
+						scY);
+		glLine(v1.x, v1.y, v2.x, v2.y);
 	}
+}
+
+static struct vec3 barycentric(struct vec3 *a, struct vec3 *b,
+			       struct vec3 *c, float x, float y)
+{
+
 }
 
 static void drawTriangle(struct model *m, struct face *f, float trX, float trY,
 			 float scX, float scY)
 {
-	// TODO some barycentric magic here
-	/* struct vec4 box = bounding(); */
+	struct facetup *af = ds_vector_get(f->data, 0);
+	struct facetup *bf = ds_vector_get(f->data, 1);
+	struct facetup *cf = ds_vector_get(f->data, 2);
+
+	struct vec3 a = vec3Transform(ds_vector_get(m->vertices, af->vi - 1),
+				       trX, trY, scX, scY);
+	struct vec3 b = vec3Transform(ds_vector_get(m->vertices, bf->vi - 1),
+				       trX, trY, scX, scY);
+	struct vec3 c = vec3Transform(ds_vector_get(m->vertices, cf->vi - 1),
+				       trX, trY, scX, scY);
+
+	// Bounding box
+	float minx = fminf(fminf(a.x, b.x), c.x);
+	float miny = fminf(fminf(a.y, b.y), c.y);
+	float maxx = fmaxf(fmaxf(a.x, b.x), c.x);
+	float maxy = fmaxf(fmaxf(a.y, b.y), c.y);
+
+	int minxi = ndcToInt(minx, true);
+	int minyi = ndcToInt(miny, false);
+	int maxxi = ndcToInt(maxx, true);
+	int maxyi = ndcToInt(maxy, false);
+
+	float dx = (maxx - minx) / (maxxi - minxi);
+	float dy = (maxy - miny) / (maxyi - minyi);
+	float y = miny;
+	for (int i = minyi; i < maxyi; i++) {
+		float x = minx;
+		for (int j = minxi; j < maxxi; j++) {
+			x += dx;
+		}
+		y += dy;
+	}
+	// Just for testing the bounding box
+	/* glLine(minx, miny, minx, maxy); */
+	/* glLine(minx, maxy, maxx, maxy); */
+	/* glLine(minx, miny, maxx, miny); */
+	/* glLine(maxx, miny, maxx, maxy); */
+
 }
 
 int glObj(char *filename, float trX, float trY, float scX, float scY)
@@ -229,8 +279,8 @@ int glObj(char *filename, float trX, float trY, float scX, float scY)
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
-			// It's a triangle
 			drawNgonFace(m, f, trX, trY, scX, scY);
+			drawTriangle(m, f, trX, trY, scX, scY);
 		} else {
 			drawNgonFace(m, f, trX, trY, scX, scY);
 		}

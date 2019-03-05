@@ -1,6 +1,7 @@
 // Rodrigo Custodio
 
 #include "gl/vector.h"
+#include <math.h>
 #include <stdlib.h>
 
 
@@ -29,4 +30,20 @@ struct vec3 vec3_cross(const struct vec3 *a, const struct vec3 *b)
 	};
 	return res;
 }
+
+float vec3_norm(const struct vec3 *a)
+{
+	return sqrtf(powf(a->x, 2.0) + powf(a->y, 2.0) + powf(a->z, 2.0));
+}
+
+struct vec3 vec3_normalize(const struct vec3 *a)
+{
+	float norm = vec3_norm(a);
+	return (struct vec3) {
+		.x = a->x / norm,
+		.y = a->y / norm,
+		.z = a->z / norm,
+	};
+}
+
 

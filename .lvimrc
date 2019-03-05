@@ -6,5 +6,5 @@ let g:ale_linters = {
 \   'c': ['cppcheck', 'clangcheck', 'clangtidy'],
 \}
 
-command! Debug :TermdebugCommand builddir/labs/sr4
+command! Debug :TermdebugCommand builddir/labs/sr4 ~/Documents/UVG/Graficas/test.obj
 command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin
