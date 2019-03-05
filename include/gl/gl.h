@@ -3,6 +3,7 @@
 #ifndef GL_H
 #define GL_H
 
+#include "gl/vector.h"
 #include <stddef.h>
 
 void glInit();
@@ -21,7 +22,7 @@ void glColor(float r, float g, float b);
 
 void glLine(float x0, float y0, float x1, float y1);
 
-int glObj(char *filename, float trX, float trY, float scX, float scY);
+int glObj(char *filename, struct vec3 *trn, struct vec3 *scl);
 
 void glNgon(const float *ngon, size_t size);
 

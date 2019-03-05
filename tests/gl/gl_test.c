@@ -1,7 +1,7 @@
 // Rodrigo Custodio
 
-#include <stdio.h>
 #include "gl/gl.h"
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {
@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 	glLine(0.3, 0.3, 0.3, 0.3);
 	glLine(0.0, 0.0, 0.0, 1.0);
 	glLine(-1.0, -1.0, 1.0, 1.0);
-	glObj("prueba.obj", 0.0, 0.0, 1.0, 1.0);
 	glFinish();
 	return 0;
 }
