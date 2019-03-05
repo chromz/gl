@@ -22,7 +22,7 @@ void glColor(float r, float g, float b);
 
 void glLine(float x0, float y0, float x1, float y1);
 
-int glObj(char *filename, struct vec3 *trn, struct vec3 *scl);
+int glObj(const char *filename, const struct vec3 *trn, const struct vec3 *scl);
 
 void glNgon(const float *ngon, size_t size);
 

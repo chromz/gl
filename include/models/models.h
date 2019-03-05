@@ -21,7 +21,7 @@ struct face {
 };
 
 
-struct model *model_load(char *filename);
+struct model *model_load(const char *filename);
 
 void model_free(struct model *m);
 

@@ -206,8 +206,8 @@ static inline float transform(float val, float trn, float scl)
 	return (val + trn) * scl;
 }
 
-static inline struct vec3 vec3Transform(struct vec3 *v, struct vec3 *trn,
-					struct vec3 *scl)
+static inline struct vec3 vec3Transform(struct vec3 *v, const struct vec3 *trn,
+					const struct vec3 *scl)
 {
 	return (struct vec3) {
 		.x = transform(v->x, trn->x, scl->x),
@@ -216,8 +216,9 @@ static inline struct vec3 vec3Transform(struct vec3 *v, struct vec3 *trn,
 	};
 }
 
-static void drawNgonFace(struct model *m, struct face *f, struct vec3 *trn,
-			 struct vec3 *scl)
+static void drawNgonFace(const struct model *m, const struct face *f,
+			 const struct vec3 *trn,
+			 const struct vec3 *scl)
 {
 	for (size_t j = 0; j <  f->facedim; j++) {
 		struct facetup *from = ds_vector_get(f->data, j);
@@ -231,9 +232,9 @@ static void drawNgonFace(struct model *m, struct face *f, struct vec3 *trn,
 	}
 }
 
-static void barycentric(struct vec3 *a, struct vec3 *b,
-			       struct vec3 *c, float x, float y,
-			       float *w, float *v, float *u)
+static void barycentric(const struct vec3 *a, const struct vec3 *b,
+			const struct vec3 *c, float x, float y,
+			float *w, float *v, float *u)
 {
 	struct vec3 capx = {
 		.x = c->x - a->x,
@@ -257,10 +258,10 @@ static void barycentric(struct vec3 *a, struct vec3 *b,
 	*u = bar.x / bar.z;
 }
 
-static void drawTriangle(struct model *m, struct face *f,
-			 struct vec3 *light,
-			 struct vec3 *trn,
-			 struct vec3 *scl)
+static void drawTriangle(const struct model *m, const struct face *f,
+			 const struct vec3 *light,
+			 const struct vec3 *trn,
+			 const struct vec3 *scl)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
 	struct facetup *bf = ds_vector_get(f->data, 1);
@@ -319,7 +320,7 @@ static void drawTriangle(struct model *m, struct face *f,
 
 }
 
-int glObj(char *filename, struct vec3 *trn, struct vec3 *scl)
+int glObj(const char *filename, const struct vec3 *trn, const struct vec3 *scl)
 {
 	struct model *m = model_load(filename);
 	if (m == NULL) {

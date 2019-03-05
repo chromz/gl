@@ -86,7 +86,7 @@ static void parse_faces(struct ds_vector *faces, char *line)
 }
 
 
-struct model *model_load(char *filename)
+struct model *model_load(const char *filename)
 {
 	FILE *file = fopen(filename, "re");
 	if (file == NULL) {
