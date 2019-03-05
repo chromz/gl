@@ -5,6 +5,7 @@
 
 int main(int argc, char **argv)
 {
+	glInit();
 	glCreateWindow(600, 400);
 	glViewport(100, 100, 100, 100);
 	glClearColor(1.0, 1.0, 1.0);

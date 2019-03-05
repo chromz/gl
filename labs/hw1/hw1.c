@@ -249,6 +249,7 @@ void stars(void)
 
 int main(int argc, char **argv)
 {
+	glInit();
 	const char usage[] = "rpoint\n"
 			     " Generate random point\n"
 			     "fourpoints\n"

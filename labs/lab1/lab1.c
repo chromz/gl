@@ -17,6 +17,7 @@ int main(void)
 {
 	int width = 800;
 	int height = 600;
+	glInit();
 	glCreateWindow(width, height);
 	glColor(1.0, 1.0, 1.0);
 

@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TOLERANCE 0.00000001f
+
 static int **fb;
 
 static int fbwidth;
@@ -20,11 +22,18 @@ static int vpy = 0;
 static int vpw = 0;
 static int vph = 0;
 static int ccolor = 0;
+static struct vec3 *light = NULL;
+
 
 
 void glInit(void)
 {
-	// TODO initialize something
+	if (light == NULL) {
+		light = malloc(sizeof(struct vec3));
+		light->x = 0;
+		light->y = 0;
+		light->z = 0;
+	}
 }
 
 static inline void swap(int *a, int *b)
@@ -111,13 +120,6 @@ void glVertex(float x, float y)
 	point(xw, yw, ccolor);
 }
 
-static void glVertexC(float x, float y, int color)
-{
-	int xw = ndcToInt(x, true);
-	int yw = ndcToInt(y, false);
-	point(xw, yw, color);
-}
-
 static inline unsigned color24(unsigned r, unsigned g, unsigned b)
 {
 	return (r << 16u) + (g << 8u) + b;
@@ -168,6 +170,16 @@ void glLine(float x0, float y0, float x1, float y1)
 		}
 		offset += 2 * dy;
 	}
+}
+
+void glLight(float x, float y, float z)
+{
+	if (light == NULL) {
+		light = malloc(sizeof(struct vec3));
+	}
+	light->x = x;
+	light->y = y;
+	light->z = z;
 }
 
 static struct vec4 bounding(const float *points, size_t size)
@@ -233,33 +245,22 @@ static void drawNgonFace(const struct model *m, const struct face *f,
 }
 
 static void barycentric(const struct vec3 *a, const struct vec3 *b,
-			const struct vec3 *c, float x, float y,
+			const struct vec3 *c, const struct vec3 *p,
 			float *w, float *v, float *u)
 {
-	struct vec3 capx = {
-		.x = c->x - a->x,
-		.y = b->x - a->x,
-		.z = a->x - x,
-	};
-	struct vec3 capy = {
-		.x = c->y - a->y,
-		.y = b->y - a->y,
-		.z = a->y - y,
-	};
-	struct vec3 bar = vec3_cross(&capx, &capy);
-	/* if (bar.z < 1.0) { */
-	/* 	*w = -1; */
-	/* 	*u = -1; */
-	/* 	*v = -1; */
-	/* 	return; */
-	/* } */
-	*w = 1.0 - (bar.x + bar.y) / bar.z;
-	*v = bar.y / bar.z;
-	*u = bar.x / bar.z;
+	float det = (b->y - c->y)*(a->x - c->x) + (c->x - b->x)*(a->y - c->y);
+	if (det - 0.0f <= TOLERANCE ) {
+		*u = -1.0;
+		*v = -1.0;
+		*w = -1.0;
+		return;
+	}
+	*u = ((b->y - c->y)*(p->x - c->x) + (c->x - b->x)*(p->y - c->y)) / det;
+	*v = ((c->y - a->y)*(p->x - c->x) + (a->x - c->x)*(p->y - c->y)) / det;
+	*w = 1.0 - (*u + *v);
 }
 
 static void drawTriangle(const struct model *m, const struct face *f,
-			 const struct vec3 *light,
 			 const struct vec3 *trn,
 			 const struct vec3 *scl)
 {
@@ -299,16 +300,22 @@ static void drawTriangle(const struct model *m, const struct face *f,
 	float dx = (maxx - minx) / (maxxi - minxi);
 	float dy = (maxy - miny) / (maxyi - minyi);
 	float y = miny;
-	for (int i = minyi; i < maxyi; i++) {
+	for (int yi = minyi; yi <= maxyi; yi++) {
 		float x = minx;
-		for (int j = minxi; j < maxxi; j++) {
+		for (int xi = minxi; xi <= maxxi; xi++) {
 			float w, v, u;
-			barycentric(&a, &b, &c, x, y, &w, &v, &u);
-			x += dx;
+			struct vec3 p = {
+				.x = x,
+				.y = y,
+				.z = 0,
+			};
+			barycentric(&a, &b, &c, &p, &w, &v, &u);
 			if (w < 0.0f || v < 0.0f || u < 0.0f) {
+				x += dx;
 				continue;
 			}
-			glVertexC(x, y, col);
+			point(xi, yi, col);
+			x += dx;
 		}
 		y += dy;
 	}
@@ -320,23 +327,18 @@ static void drawTriangle(const struct model *m, const struct face *f,
 
 }
 
+
 int glObj(const char *filename, const struct vec3 *trn, const struct vec3 *scl)
 {
 	struct model *m = model_load(filename);
 	if (m == NULL) {
 		return -1;
 	}
-	struct vec3 light = {
-		.x = 0.0,
-		.y = 0.0,
-		.z = 1.0,
-	};
 	// It's a triangle
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
-			/* drawNgonFace(m, f, trX, trY, scX, scY); */
-			drawTriangle(m, f, &light, trn, scl);
+			drawTriangle(m, f, trn, scl);
 		} else {
 			drawNgonFace(m, f, trn, scl);
 		}
@@ -381,13 +383,6 @@ void glNgon(const float *ngon, size_t size)
 		return;
 	}
 	struct vec4 box = bounding(ngon, size);
-	for(size_t i = 0; i < size; i += 2) {
-		float x0 = ngon[i];
-		float y0 = ngon[i + 1];
-		float x1 = ngon[(i + 2) % size];
-		float y1 = ngon[(i + 3) % size];
-		glLine(x0, y0, x1, y1);
-	}
 
 	int minx = ndcToInt(box.x, true);
 	int miny = ndcToInt(box.y, false);
@@ -396,11 +391,11 @@ void glNgon(const float *ngon, size_t size)
 	float dx = (box.z - box.x) / (maxx - minx);
 	float dy = (box.w - box.y) / (maxy - miny);
 	float y = box.y;
-	for (int i = miny; i < maxy; i++) {
+	for (int yi = miny; yi < maxy; yi++) {
 		float x = box.x;
-		for (int j = minx; j < maxx; j++) {
+		for (int xi = minx; xi < maxx; xi++) {
 			if (isInside(x, y, ngon, size)) {
-				glVertex(x, y);
+				point(xi, yi, ccolor);
 			}
 			x += dx;
 		}
@@ -416,4 +411,5 @@ void glFinish(void)
 		free(fb[i]);
 	}
 	free(fb);
+	free(light);
 }

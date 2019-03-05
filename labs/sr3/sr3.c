@@ -6,6 +6,7 @@
 
 int main(void)
 {
+	glInit();
 	glCreateWindow(800, 600);
 	glColor(1.0, 1.0, 1.0);
 	struct vec3 trn = {
@@ -18,6 +19,7 @@ int main(void)
 		0.09,
 		1.0,
 	};
+	glLight(0.0, 0.0, 1.0);
 	glObj("labs/heli.obj", &trn, &scl);
 	glFinish();
 	return 0;

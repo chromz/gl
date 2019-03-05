@@ -16,7 +16,7 @@ static char *readline(FILE *file)
 	char *line = malloc(sizeof(char));
 	int index = 0;
 	int c = fgetc(file);
-	if (c == EOF || c == '\n') {
+	if (c == EOF) {
 		free(line);
 		return NULL;
 	}
