@@ -416,7 +416,6 @@ int glObj(const char *filename)
 	if (m == NULL) {
 		return -1;
 	}
-	// It's a triangle
 	int tmp = ccolor;
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
