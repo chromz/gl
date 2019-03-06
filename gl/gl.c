@@ -4,6 +4,7 @@
 #include "models/models.h"
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -14,7 +15,7 @@
 #define TOLERANCE 0.00000001f
 
 static int **fbuffer;
-/* static int **zbuffer; */
+static float **zbuffer;
 
 static int fbwidth;
 static int fbheight;
@@ -62,9 +63,14 @@ void glCreateWindow(int width, int height)
 {
 	fbwidth = width;
 	fbheight = height;
-	fbuffer = malloc(sizeof(int*) * height);
+	fbuffer = malloc(sizeof(int *) * height);
+	zbuffer = malloc(sizeof(int *) * height);
 	for(int i = 0; i < height; i++) {
 		fbuffer[i] = calloc(width, sizeof(int));
+		zbuffer[i] = malloc(width * sizeof(int));
+		for (int j = 0; j < width; j++) {
+			zbuffer[i][j] = -FLT_MAX;
+		}	
 	}
 	vpw = width;
 	vph = height;
@@ -106,6 +112,18 @@ static inline void point(int x, int y, int color)
 		return;
 	}
 	fbuffer[y][x] = color;
+}
+
+static inline void pointz(int x, int y, int color, float z)
+{
+	if (x >= vpw + vpx || y >= vph + vpy) {
+		return;
+	}
+	if (z > zbuffer[y][x]) {
+		fbuffer[y][x] = color;
+		zbuffer[y][x] = z;
+	}
+
 }
 
 static int ndcToInt(float val, bool isXaxis)
@@ -294,7 +312,8 @@ static void drawTriangle(const struct model *m, const struct face *f)
 			if (w < 0.0f || v < 0.0f || u < 0.0f) {
 				continue;
 			}
-			point(x, y, col);
+			p.z = a.z * u + b.z * v + c.z * w;
+			pointz(x, y, col, p.z);
 		}
 	}
 	// Just for testing the bounding box

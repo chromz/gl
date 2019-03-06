@@ -5,6 +5,7 @@ project('sr1', 'c',
 
 gl_include_dirs = include_directories('include')
 add_project_arguments('-Wpedantic', language : 'c')
+# add_project_link_arguments('-pg', language : 'c')
 
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : false)
