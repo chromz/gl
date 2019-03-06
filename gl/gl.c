@@ -421,7 +421,7 @@ int glObj(const char *filename)
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
 			drawTriangle(m, f);
-		} else {
+		} else if (f->facedim > 3) {
 			// Experimental with all ngons
 			float *vs = setUpNgonFromFace(m, f);
 			if (vs != NULL) {
