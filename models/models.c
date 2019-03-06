@@ -64,15 +64,15 @@ static void parse_faces(struct ds_vector *faces, char *line)
 	while (val != NULL) {
 		char  *res = strsep(&val, "/");
 		struct facetup *data = malloc(sizeof(struct facetup));
-		data->vi = strtoimax(res, NULL, 0);
+		data->vi = strtoimax(res, NULL, 0) - 1;
 		res = strsep(&val, "/");
 		if (strcmp(res, "") == 0) {
 			data->ti = -1;
 		} else {
-			data->ti = strtoimax(res, NULL, 0);
+			data->ti = strtoimax(res, NULL, 0) - 1;
 		}
 		res = strsep(&val, "/");
-		data->ni = strtoimax(res, NULL, 0);
+		data->ni = strtoimax(res, NULL, 0) - 1;
 		if (errno) {
 			free(data);
 			face_free(f);

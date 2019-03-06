@@ -237,9 +237,9 @@ static void drawNgonFace(const struct model *m, const struct face *f,
 		struct facetup *to = ds_vector_get(f->data,
 						(j + 1) % f->facedim);
 		struct vec3 v1 = vec3Transform(ds_vector_get(m->vertices,
-						from->vi - 1), trn, scl);
+						from->vi), trn, scl);
 		struct vec3 v2 = vec3Transform(ds_vector_get(m->vertices,
-						to->vi - 1), trn, scl);
+						to->vi), trn, scl);
 		glLine(v1.x, v1.y, v2.x, v2.y);
 	}
 }
@@ -249,7 +249,7 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 			float *w, float *v, float *u)
 {
 	float det = (b->y - c->y)*(a->x - c->x) + (c->x - b->x)*(a->y - c->y);
-	if (det - 0.0f <= TOLERANCE ) {
+	if (det <= TOLERANCE ) {
 		*u = -1.0;
 		*v = -1.0;
 		*w = -1.0;
@@ -268,11 +268,11 @@ static void drawTriangle(const struct model *m, const struct face *f,
 	struct facetup *bf = ds_vector_get(f->data, 1);
 	struct facetup *cf = ds_vector_get(f->data, 2);
 
-	struct vec3 a = vec3Transform(ds_vector_get(m->vertices, af->vi - 1),
+	struct vec3 a = vec3Transform(ds_vector_get(m->vertices, af->vi),
 				       trn, scl);
-	struct vec3 b = vec3Transform(ds_vector_get(m->vertices, bf->vi - 1),
+	struct vec3 b = vec3Transform(ds_vector_get(m->vertices, bf->vi),
 				       trn, scl);
-	struct vec3 c = vec3Transform(ds_vector_get(m->vertices, cf->vi - 1),
+	struct vec3 c = vec3Transform(ds_vector_get(m->vertices, cf->vi),
 				       trn, scl);
 
 	struct vec3 ab = vec3_sub(&b, &a);
