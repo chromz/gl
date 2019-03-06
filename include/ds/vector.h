@@ -28,5 +28,4 @@ bool ds_vector_shrink(struct ds_vector *v);
 
 void ds_vector_free(struct ds_vector *v);
 
-
 #endif

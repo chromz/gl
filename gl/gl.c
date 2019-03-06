@@ -23,6 +23,8 @@ static int vpw = 0;
 static int vph = 0;
 static int ccolor = 0;
 static struct vec3 *light = NULL;
+static struct vec3 *trn = NULL;
+static struct vec3 *scl = NULL;
 
 
 
@@ -33,6 +35,18 @@ void glInit(void)
 		light->x = 0;
 		light->y = 0;
 		light->z = 0;
+	}
+	if (trn == NULL) {
+		trn = malloc(sizeof(struct vec3));
+		trn->x = 0;
+		trn->y = 0;
+		trn->z = 0;
+	}
+	if (scl == NULL) {
+		scl = malloc(sizeof(struct vec3));
+		scl->x = 1.0;
+		scl->y = 1.0;
+		scl->z = 1.0;
 	}
 }
 
@@ -182,36 +196,7 @@ void glLight(float x, float y, float z)
 	light->z = z;
 }
 
-static struct vec4 bounding(const float *points, size_t size)
-{
-	float minx = FLT_MAX;
-	float maxx = -FLT_MAX;
-	float miny = FLT_MAX;
-	float maxy = -FLT_MAX;
-	for (size_t i = 0; i < size; i += 2) {
-		if (points[i] < minx) {
-			minx = points[i];
-		}
 
-		if (points[i] > maxx) {
-			maxx = points[i];
-		}
-
-		if (points[i + 1] <  miny) {
-			miny = points[i + 1];
-		}
-
-		if (points[i + 1] > maxy) {
-			maxy = points[i + 1];
-		}
-	}
-	return (struct vec4) {
-		.x = minx,
-		.y = miny,
-		.z = maxx,
-		.w = maxy,
-	};
-}
 
 static inline float transform(float val, float trn, float scl)
 {
@@ -228,9 +213,8 @@ static inline struct vec3 vec3Transform(struct vec3 *v, const struct vec3 *trn,
 	};
 }
 
-static void drawNgonFace(const struct model *m, const struct face *f,
-			 const struct vec3 *trn,
-			 const struct vec3 *scl)
+
+static void drawWireframe(const struct model *m, const struct face *f)
 {
 	for (size_t j = 0; j <  f->facedim; j++) {
 		struct facetup *from = ds_vector_get(f->data, j);
@@ -260,9 +244,7 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 	*w = 1.0 - (*u + *v);
 }
 
-static void drawTriangle(const struct model *m, const struct face *f,
-			 const struct vec3 *trn,
-			 const struct vec3 *scl)
+static void drawTriangle(const struct model *m, const struct face *f)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
 	struct facetup *bf = ds_vector_get(f->data, 1);
@@ -322,36 +304,36 @@ static void drawTriangle(const struct model *m, const struct face *f,
 
 }
 
-
-int glObj(const char *filename, const struct vec3 *trn, const struct vec3 *scl)
+static struct vec4 bounding(const float *points, size_t size)
 {
-	struct model *m = model_load(filename);
-	if (m == NULL) {
-		return -1;
-	}
-	// It's a triangle
-	for (size_t i = 0; i < m->faces->size; i++) {
-		struct face *f = ds_vector_get(m->faces, i);
-		if (f->facedim == 3) {
-			drawTriangle(m, f, trn, scl);
-		} else {
-			drawNgonFace(m, f, trn, scl);
+	float minx = FLT_MAX;
+	float maxx = -FLT_MAX;
+	float miny = FLT_MAX;
+	float maxy = -FLT_MAX;
+	for (size_t i = 0; i < size; i += 2) {
+		if (points[i] < minx) {
+			minx = points[i];
+		}
+
+		if (points[i] > maxx) {
+			maxx = points[i];
+		}
+
+		if (points[i + 1] <  miny) {
+			miny = points[i + 1];
+		}
+
+		if (points[i + 1] > maxy) {
+			maxy = points[i + 1];
 		}
 	}
-	model_free(m);
-	return 1;
+	return (struct vec4) {
+		.x = minx,
+		.y = miny,
+		.z = maxx,
+		.w = maxy,
+	};
 }
-
-/* static inline int getPoint(int x, int y) */
-/* { */
-/* 	if (x >= vpw && y < vph) { */
-/* 		return fb[vpw -1][y]; */
-/* 	} */
-/* 	if (x < vpw && y >= vph) { */
-/* 		return fb[x][vph - 1]; */
-/* 	} */
-/* 	return fb[y][x]; */
-/* } */
 
 static bool isInside(const float x, const float y,
 		     const float *ngon, size_t size)
@@ -377,6 +359,7 @@ void glNgon(const float *ngon, size_t size)
 	if (size % 2 != 0) {
 		return;
 	}
+
 	struct vec4 box = bounding(ngon, size);
 
 	int minx = ndcToInt(box.x, true);
@@ -384,13 +367,106 @@ void glNgon(const float *ngon, size_t size)
 	int maxx = ndcToInt(box.z, true);
 	int maxy = ndcToInt(box.w, false);
 
-	for (int y = miny; y < maxy; y++) {
-		for (int x = minx; x < maxx; x++) {
+	for (int y = miny; y <= maxy; y++) {
+		for (int x = minx; x <= maxx; x++) {
 			if (isInside(x, y, ngon, size)) {
 				point(x, y, ccolor);
 			}
 		}
 	}
+}
+
+static float *setUpNgonFromFace(struct model *m, struct face *f)
+{
+	float *pol = malloc(2 * f->facedim * sizeof(float));
+	size_t i, j = 0;
+	struct facetup *fa = ds_vector_get(f->data, 0);
+	struct vec3 *a = ds_vector_get(m->vertices, fa->vi);
+	struct facetup *ftb = ds_vector_get(f->data, 1);
+	struct vec3 *b = ds_vector_get(m->vertices, ftb->vi);
+	struct facetup *fc = ds_vector_get(f->data, 2);
+	struct vec3 *c = ds_vector_get(m->vertices, fc->vi);
+
+	struct vec3 ab = vec3_sub(b, a);
+	struct vec3 ac = vec3_sub(c, a);
+	struct vec3 crs = vec3_cross(&ab, &ac);
+	crs = vec3_normalize(&crs);
+
+	float intensity = vec3_dot(&crs, light);
+	int col = (int) round(255.0 * intensity);
+	if (col < 0) {
+		free(pol);
+		return NULL;
+	}
+	ccolor = color24(col, col, col);
+	
+	for (i = 0; i < f->facedim; i++) {
+		struct facetup *tup = ds_vector_get(f->data, i);
+		struct vec3 *corner = ds_vector_get(m->vertices, tup->vi);
+		pol[j] = corner->x;
+		pol[j + 1] = corner->y;
+		j += 2;
+	}
+	return pol;
+}
+
+int glObj(const char *filename)
+{
+	struct model *m = model_load(filename);
+	if (m == NULL) {
+		return -1;
+	}
+	// It's a triangle
+	int tmp = ccolor;
+	for (size_t i = 0; i < m->faces->size; i++) {
+		struct face *f = ds_vector_get(m->faces, i);
+		if (f->facedim == 3) {
+			drawTriangle(m, f);
+		} else {
+			// Experimental with all ngons
+			float *vs = setUpNgonFromFace(m, f);
+			if (vs != NULL) {
+				glNgon(vs, f->facedim * 2);
+				free(vs);
+			}
+			/* drawWireframe(m, f); */
+		}
+	}
+	ccolor = tmp;
+	model_free(m);
+	return 1;
+}
+
+/* static inline int getPoint(int x, int y) */
+/* { */
+/* 	if (x >= vpw && y < vph) { */
+/* 		return fb[vpw -1][y]; */
+/* 	} */
+/* 	if (x < vpw && y >= vph) { */
+/* 		return fb[x][vph - 1]; */
+/* 	} */
+/* 	return fb[y][x]; */
+/* } */
+
+
+void glTranslate(float x, float y, float z)
+{
+	if (trn == NULL) {
+		trn = malloc(sizeof(struct vec3));
+	}
+	trn->x = x;
+	trn->y = y;
+	trn->z = z;
+}
+
+void glScale(float x, float y, float z)
+{
+	if (scl == NULL) {
+		scl = malloc(sizeof(struct vec3));
+	}
+	scl->x = x;
+	scl->y = y;
+	scl->z = z;
 }
 
 void glFinish(void)
@@ -401,4 +477,6 @@ void glFinish(void)
 	}
 	free(fb);
 	free(light);
+	free(trn);
+	free(scl);
 }
