@@ -13,7 +13,8 @@
 
 #define TOLERANCE 0.00000001f
 
-static int **fb;
+static int **fbuffer;
+/* static int **zbuffer; */
 
 static int fbwidth;
 static int fbheight;
@@ -61,9 +62,9 @@ void glCreateWindow(int width, int height)
 {
 	fbwidth = width;
 	fbheight = height;
-	fb = malloc(sizeof(int*) * height);
+	fbuffer = malloc(sizeof(int*) * height);
 	for(int i = 0; i < height; i++) {
-		fb[i] = calloc(width, sizeof(int));
+		fbuffer[i] = calloc(width, sizeof(int));
 	}
 	vpw = width;
 	vph = height;
@@ -77,11 +78,11 @@ void glViewport(int x, int y, int width, int height)
 	vph = height;
 }
 
-void glClear()
+void glClear(void)
 {
 	for(int i = 0; i < fbheight; i++) {
 		for (int j = 0; j < fbwidth; j++) {
-			fb[i][j] = 0;
+			fbuffer[i][j] = 0;
 		}
 	}
 }
@@ -94,7 +95,7 @@ void glClearColor(float r, float g, float b)
 	int color = (rint << 16u) + (gint << 8u) + bint;
 	for(int i = 0; i < fbheight; i++) {
 		for (int j = 0; j < fbwidth; j++) {
-			fb[i][j] = color;
+			fbuffer[i][j] = color;
 		}
 	}
 }
@@ -104,7 +105,7 @@ static inline void point(int x, int y, int color)
 	if (x >= vpw + vpx || y >= vph + vpy) {
 		return;
 	}
-	fb[y][x] = color;
+	fbuffer[y][x] = color;
 }
 
 static int ndcToInt(float val, bool isXaxis)
@@ -382,8 +383,8 @@ static float *setUpNgonFromFace(struct model *m, struct face *f)
 	size_t i, j = 0;
 	struct facetup *fa = ds_vector_get(f->data, 0);
 	struct vec3 *a = ds_vector_get(m->vertices, fa->vi);
-	struct facetup *ftb = ds_vector_get(f->data, 1);
-	struct vec3 *b = ds_vector_get(m->vertices, ftb->vi);
+	struct facetup *fb = ds_vector_get(f->data, 1);
+	struct vec3 *b = ds_vector_get(m->vertices, fb->vi);
 	struct facetup *fc = ds_vector_get(f->data, 2);
 	struct vec3 *c = ds_vector_get(m->vertices, fc->vi);
 
@@ -470,11 +471,11 @@ void glScale(float x, float y, float z)
 
 void glFinish(void)
 {
-	bmp_write("canvas.bmp", fb, fbwidth, fbheight);
+	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);
 	for(size_t i = 0; i < vph; i++) {
-		free(fb[i]);
+		free(fbuffer[i]);
 	}
-	free(fb);
+	free(fbuffer);
 	free(light);
 	free(trn);
 	free(scl);
