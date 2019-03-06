@@ -286,23 +286,21 @@ static void drawTriangle(const struct model *m, const struct face *f,
 		return;
 	}
 	col = color24(col, col, col);
+	a.x = ndcToInt(a.x, true);
+	a.y = ndcToInt(a.y, false);
+	b.x = ndcToInt(b.x, true);
+	b.y = ndcToInt(b.y, false);
+	c.x = ndcToInt(c.x, true);
+	c.y = ndcToInt(c.y, false);
+
 	// Bounding box
-	float minx = fminf(fminf(a.x, b.x), c.x);
-	float miny = fminf(fminf(a.y, b.y), c.y);
-	float maxx = fmaxf(fmaxf(a.x, b.x), c.x);
-	float maxy = fmaxf(fmaxf(a.y, b.y), c.y);
+	int minx = (int) fminf(fminf(a.x, b.x), c.x);
+	int miny = (int) fminf(fminf(a.y, b.y), c.y);
+	int maxx = (int) fmaxf(fmaxf(a.x, b.x), c.x);
+	int maxy = (int) fmaxf(fmaxf(a.y, b.y), c.y);
 
-	int minxi = ndcToInt(minx, true);
-	int minyi = ndcToInt(miny, false);
-	int maxxi = ndcToInt(maxx, true);
-	int maxyi = ndcToInt(maxy, false);
-
-	float dx = (maxx - minx) / (maxxi - minxi);
-	float dy = (maxy - miny) / (maxyi - minyi);
-	float y = miny;
-	for (int yi = minyi; yi <= maxyi; yi++) {
-		float x = minx;
-		for (int xi = minxi; xi <= maxxi; xi++) {
+	for (int y = miny; y <= maxy; y++) {
+		for (int x = minx; x <= maxx; x++) {
 			float w, v, u;
 			struct vec3 p = {
 				.x = x,
@@ -311,13 +309,10 @@ static void drawTriangle(const struct model *m, const struct face *f,
 			};
 			barycentric(&a, &b, &c, &p, &w, &v, &u);
 			if (w < 0.0f || v < 0.0f || u < 0.0f) {
-				x += dx;
 				continue;
 			}
-			point(xi, yi, col);
-			x += dx;
+			point(x, y, col);
 		}
-		y += dy;
 	}
 	// Just for testing the bounding box
 	/* glLine(minx, miny, minx, maxy); */
@@ -364,10 +359,10 @@ static bool isInside(const float x, const float y,
 	// http://alienryderflex.com/polygon/
 	bool odd = false;
 	for (size_t i = 0; i < size; i += 2) {
-		float x0 = ngon[i];
-		float y0 = ngon[i + 1];
-		float x1 = ngon[(i + 2) % size];
-		float y1 = ngon[(i + 3) % size];
+		float x0 = ndcToInt(ngon[i], true);
+		float y0 = ndcToInt(ngon[i + 1], false);
+		float x1 = ndcToInt(ngon[(i + 2) % size], true);
+		float y1 = ndcToInt(ngon[(i + 3) % size], false);
 		if ((y0 < y && y1 >= y) ||
 		    (y1 < y && y0 >= y)) {
 			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
@@ -388,20 +383,14 @@ void glNgon(const float *ngon, size_t size)
 	int miny = ndcToInt(box.y, false);
 	int maxx = ndcToInt(box.z, true);
 	int maxy = ndcToInt(box.w, false);
-	float dx = (box.z - box.x) / (maxx - minx);
-	float dy = (box.w - box.y) / (maxy - miny);
-	float y = box.y;
-	for (int yi = miny; yi < maxy; yi++) {
-		float x = box.x;
-		for (int xi = minx; xi < maxx; xi++) {
-			if (isInside(x, y, ngon, size)) {
-				point(xi, yi, ccolor);
-			}
-			x += dx;
-		}
-		y += dy;
-	}
 
+	for (int y = miny; y < maxy; y++) {
+		for (int x = minx; x < maxx; x++) {
+			if (isInside(x, y, ngon, size)) {
+				point(x, y, ccolor);
+			}
+		}
+	}
 }
 
 void glFinish(void)

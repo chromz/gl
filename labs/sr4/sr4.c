@@ -15,9 +15,9 @@ int main(int argc, char **argv)
 		0.0,
 	};
 	struct vec3 scl = {
-		2.5,
-		2.5,
-		2.5,
+		1.0,
+		1.0,
+		1.0,
 	};
 	glLight(0.0, 0.0, 1.0);
 	glObj(argv[1], &trn, &scl);

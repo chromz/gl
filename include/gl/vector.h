@@ -35,7 +35,6 @@ struct vec3 {
 	float x, y, z;
 };
 
-
 struct dvec2 {
 	double x, y;
 };
