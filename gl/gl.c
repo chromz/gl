@@ -340,13 +340,14 @@ static void drawTriangle(const struct model *m, const struct face *f)
 				float ty = at->y * u + bt->y * v + ct->y * w;
 				setTextureColor(m, tx, ty, intensity, &col);
 				if (col < 0) {
-					break;
+					return;
 				}
 			}
 			p.z = a.z * u + b.z * v + c.z * w;
 			pointz(x, y, col, p.z);
 		}
 	}
+
 	// Just for testing the bounding box
 	/* glLine(minx, miny, minx, maxy); */
 	/* glLine(minx, maxy, maxx, maxy); */
