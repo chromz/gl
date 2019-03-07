@@ -19,15 +19,28 @@ static inline  void w_dword(FILE * file, long l)
 	fwrite(&l, 4, 1, file);
 }
 
+static void buffer_free(int **buffer, int allocated)
+{
+	for (int i = 0; i < allocated; i++) {
+		free(buffer[i]);
+	}
+	free(buffer);
+}
+
 int bmp_load(const char *filename, int ***buffer, long *width, long *height)
 {
+	if (*buffer != NULL || width == NULL || height == NULL) {
+		return 0;
+	}
+	*width = 0;
+	*height = 0;
 	FILE *file;
 	file = fopen(filename, "rbe");
 	if (file == NULL) {
 		return 0;
 	}
 	fseek(file, 10, SEEK_SET);
-	long header_s;
+	long header_s = 0;
 	if (fread(&header_s, 4, 1, file) == 0) {
 		fclose(file);
 		return 0;
@@ -51,6 +64,7 @@ int bmp_load(const char *filename, int ***buffer, long *width, long *height)
 		for (int j = 0; j < *width; j++) {
 			char color[3];
 			if (fread(color, 1, 3, file) != 3) {
+				buffer_free(*buffer, i);
 				fclose(file);
 				return 0;
 			}

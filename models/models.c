@@ -38,6 +38,10 @@ static char *readline(FILE *file)
 
 void model_free(struct model *m)
 {
+	for (int i = 0; i < m->txheight; i++) {
+		free(m->texture[i]);
+	}
+	free(m->texture);
 	ds_vector_free(m->vertices);
 	ds_vector_free(m->faces);
 	free(m);
@@ -93,9 +97,11 @@ struct model *model_load(const char *filename, const char *txfilename)
 		return NULL;
 	}
 	struct model *mdl = malloc(sizeof(struct model));
+	mdl->texture = NULL;
 	if (txfilename != NULL) {
 		bmp_load(txfilename, &mdl->texture, &mdl->txwidth,
 				&mdl->txheight);
+		/* bmp_write("builddir/canvas.bmp", mdl->texture, mdl->txwidth, mdl->txheight); */
 	}
 	mdl->vertices = ds_vector_new_with_free(elm_free);
 	mdl->faces = ds_vector_new_with_free(face_free);

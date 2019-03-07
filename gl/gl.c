@@ -493,8 +493,10 @@ void glFinish(void)
 	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);
 	for(size_t i = 0; i < vph; i++) {
 		free(fbuffer[i]);
+		free(zbuffer[i]);
 	}
 	free(fbuffer);
+	free(zbuffer);
 	free(light);
 	free(trn);
 	free(scl);
