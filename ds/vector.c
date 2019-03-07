@@ -69,7 +69,7 @@ bool ds_vector_set(struct ds_vector *v, void *e, size_t i)
 	return true;
 }
 
-bool ds_vector_remove(struct ds_vector *v, void *e, size_t i)
+bool ds_vector_remove(struct ds_vector *v, size_t i)
 {
 	if (i >= v->size) {
 		return false;

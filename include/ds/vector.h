@@ -22,7 +22,7 @@ void *ds_vector_get(struct ds_vector *v, size_t i);
 
 bool ds_vector_set(struct ds_vector *v, void *e, size_t i);
 
-bool ds_vector_remove(struct ds_vector *v, void *e, size_t i);
+bool ds_vector_remove(struct ds_vector *v, size_t i);
 
 bool ds_vector_shrink(struct ds_vector *v);
 

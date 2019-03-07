@@ -143,5 +143,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 	}
 
 	fclose(file);
+	ds_vector_shrink(mdl->vertices);
+	ds_vector_shrink(mdl->faces);
 	return mdl;
 }
