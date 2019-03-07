@@ -430,9 +430,9 @@ static float *setUpNgonFromFace(struct model *m, struct face *f)
 	return pol;
 }
 
-int glObj(const char *filename)
+int glObj(const char *filename, const char *txfilename)
 {
-	struct model *m = model_load(filename);
+	struct model *m = model_load(filename, txfilename);
 	if (m == NULL) {
 		return -1;
 	}

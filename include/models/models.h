@@ -7,6 +7,9 @@
 struct model {
 	struct ds_vector *vertices;
 	struct ds_vector *faces;
+	int **texture;
+	long txwidth;
+	long txheight;
 };
 
 struct facetup {
@@ -21,7 +24,7 @@ struct face {
 };
 
 
-struct model *model_load(const char *filename);
+struct model *model_load(const char *filename, const char *txfilename);
 
 void model_free(struct model *m);
 

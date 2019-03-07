@@ -14,6 +14,10 @@ executable('sr4', 'sr4/sr4.c',
   include_directories : gl_include_dirs,
   link_with : gl_lib)
 
+executable('sr5', 'sr5/sr5.c',
+  include_directories : gl_include_dirs,
+  link_with : gl_lib)
+
 configure_file(input : 'sr3/test.obj',
                output : 'test.obj',
                copy: true)

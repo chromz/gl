@@ -2,6 +2,7 @@
 
 #define _DEFAULT_SOURCE
 #include "gl/vector.h"
+#include "bmp/bmp.h"
 #include "models/models.h"
 #include <errno.h>
 #include <inttypes.h>
@@ -85,14 +86,17 @@ static void parse_faces(struct ds_vector *faces, char *line)
 	ds_vector_push_back(faces, f);
 }
 
-
-struct model *model_load(const char *filename)
+struct model *model_load(const char *filename, const char *txfilename)
 {
 	FILE *file = fopen(filename, "re");
 	if (file == NULL) {
 		return NULL;
 	}
 	struct model *mdl = malloc(sizeof(struct model));
+	if (txfilename != NULL) {
+		bmp_load(txfilename, &mdl->texture, &mdl->txwidth,
+				&mdl->txheight);
+	}
 	mdl->vertices = ds_vector_new_with_free(elm_free);
 	mdl->faces = ds_vector_new_with_free(face_free);
 	char *line;

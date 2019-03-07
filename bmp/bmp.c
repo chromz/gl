@@ -19,11 +19,56 @@ static inline  void w_dword(FILE * file, long l)
 	fwrite(&l, 4, 1, file);
 }
 
-int bmp_write(char *filename, int **fb, int width, int height)
+int bmp_load(const char *filename, int ***buffer, long *width, long *height)
+{
+	FILE *file;
+	file = fopen(filename, "rbe");
+	if (file == NULL) {
+		return 0;
+	}
+	fseek(file, 10, SEEK_SET);
+	long header_s;
+	if (fread(&header_s, 4, 1, file) == 0) {
+		fclose(file);
+		return 0;
+	}
+	if(fseek(file, 4, SEEK_CUR) != 0) {
+		fclose(file);
+		return 0;
+	}
+	if (fread(width, 4, 1, file) == 0) {
+		fclose(file);
+		return 0;
+	}
+	if (fread(height, 4, 1, file) == 0) {
+		fclose(file);
+		return 0;
+	}
+	fseek(file, header_s, SEEK_SET);
+	*buffer = malloc((*height) * sizeof(int *));
+	for (int i = 0; i < *height; i++) {
+		(*buffer)[i] = malloc((*width) * sizeof(int));
+		for (int j = 0; j < *width; j++) {
+			char color[3];
+			if (fread(color, 1, 3, file) != 3) {
+				fclose(file);
+				return 0;
+			}
+			(*buffer)[i][j] = (color[2] << 16u) + (color[1] << 8u) +
+				    color[0];
+		}
+	}
+	/* fseek(file, 2, SEEK_SET); */
+		
+	fclose(file);
+	return 1;
+}
+
+int bmp_write(const char *filename, int **fb, int width, int height)
 {
 
 	FILE *file;
-	file = fopen(filename, "wb");
+	file = fopen(filename, "wbe");
 	if (file == NULL) {
 		return -1;
 	}
