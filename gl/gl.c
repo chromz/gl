@@ -297,7 +297,7 @@ static void drawTriangle(const struct model *m, const struct face *f)
 	crs = vec3_normalize(&crs);
 
 	float intensity = vec3_dot(&crs, light);
-	int col;
+	int col = 0;
 	struct vec3 *at, *bt, *ct;
 	if (!m->texture) {
 		col = (int) roundf(255.0f * intensity);
@@ -339,6 +339,9 @@ static void drawTriangle(const struct model *m, const struct face *f)
 				float tx = at->x * u + bt->x * v + ct->x * w;
 				float ty = at->y * u + bt->y * v + ct->y * w;
 				setTextureColor(m, tx, ty, intensity, &col);
+				if (col < 0) {
+					break;
+				}
 			}
 			p.z = a.z * u + b.z * v + c.z * w;
 			pointz(x, y, col, p.z);
