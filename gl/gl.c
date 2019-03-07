@@ -129,11 +129,11 @@ static inline void pointz(int x, int y, int color, float z)
 static int ndcToInt(float val, bool isXaxis)
 {
 	if (isXaxis) {
-		int xw = (int) round(vpx + (val + 1.0) * (vpw / 2.0));
+		int xw = (int) roundf(vpx + (val + 1.0) * (vpw / 2.0));
 		return (xw - 1) >= 0 ? xw - 1 : 0;
 	}
 
-	int yw = (int) round(vpy + (val + 1.0) * (vph / 2.0));
+	int yw = (int) roundf(vpy + (val + 1.0) * (vph / 2.0));
 	return (yw - 1) >= 0 ? yw - 1 : 0;
 }
 
@@ -263,6 +263,20 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 	*w = 1.0 - (*u + *v);
 }
 
+static void setTextureColor(const struct model *m, float tx, float ty,
+			    float intensity, int *col)
+{
+	long cx = (long) floorf(tx * m->txwidth);
+	long cy = (long) floorf(ty * m->txheight);
+	unsigned pcol = m->texture[cy][cx];
+	int tmp = pcol >> 16u & 0xFFu;
+	*col = ((unsigned) (roundf((tmp * intensity)))) << 16u;
+	tmp = pcol >> 8u & 0xFFu;
+	*col += ((unsigned) (roundf(tmp * intensity))) << 8u;
+	tmp = pcol & 0xFFu;
+	*col += ((unsigned) (roundf(tmp * intensity)));
+}
+
 static void drawTriangle(const struct model *m, const struct face *f)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
@@ -275,6 +289,7 @@ static void drawTriangle(const struct model *m, const struct face *f)
 				       trn, scl);
 	struct vec3 c = vec3Transform(ds_vector_get(m->vertices, cf->vi),
 				       trn, scl);
+	
 
 	struct vec3 ab = vec3_sub(&b, &a);
 	struct vec3 ac = vec3_sub(&c, &a);
@@ -282,11 +297,19 @@ static void drawTriangle(const struct model *m, const struct face *f)
 	crs = vec3_normalize(&crs);
 
 	float intensity = vec3_dot(&crs, light);
-	int col = (int) round(255.0 * intensity);
-	if (col < 0) {
-		return;
+	int col;
+	struct vec3 *at, *bt, *ct;
+	if (!m->texture) {
+		col = (int) roundf(255.0f * intensity);
+		if (col < 0) {
+			return;
+		}
+		col = color24(col, col, col);
+	} else {
+		at = ds_vector_get(m->textures, af->ti);
+		bt = ds_vector_get(m->textures, bf->ti);
+		ct = ds_vector_get(m->textures, cf->ti);
 	}
-	col = color24(col, col, col);
 	a.x = ndcToInt(a.x, true);
 	a.y = ndcToInt(a.y, false);
 	b.x = ndcToInt(b.x, true);
@@ -311,6 +334,11 @@ static void drawTriangle(const struct model *m, const struct face *f)
 			barycentric(&a, &b, &c, &p, &w, &v, &u);
 			if (w < 0.0f || v < 0.0f || u < 0.0f) {
 				continue;
+			}
+			if (m->texture != NULL) {
+				float tx = at->x * u + bt->x * v + ct->x * w;
+				float ty = at->y * u + bt->y * v + ct->y * w;
+				setTextureColor(m, tx, ty, intensity, &col);
 			}
 			p.z = a.z * u + b.z * v + c.z * w;
 			pointz(x, y, col, p.z);
@@ -413,7 +441,7 @@ static float *setUpNgonFromFace(struct model *m, struct face *f)
 	crs = vec3_normalize(&crs);
 
 	float intensity = vec3_dot(&crs, light);
-	int col = (int) round(255.0 * intensity);
+	int col = (int) roundf(255.0 * intensity);
 	if (col < 0) {
 		free(pol);
 		return NULL;

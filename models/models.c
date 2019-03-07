@@ -98,6 +98,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 		return NULL;
 	}
 	struct model *mdl = malloc(sizeof(struct model));
+	mdl->textures = NULL;
 	mdl->texture = NULL;
 	if (txfilename != NULL) {
 		bmp_load(txfilename, &mdl->texture, &mdl->txwidth,
@@ -109,15 +110,19 @@ struct model *model_load(const char *filename, const char *txfilename)
 	mdl->textures = ds_vector_new_with_free(elm_free);
 	char *line;
 	while ((line = readline(file)) != NULL) {
-		char *tmp = line;
-		char *pch = strsep(&tmp, " ");
+		char *tmp;
+		char *pch = strtok_r(line, " ", &tmp);
+		if (!pch) {
+			free(line);
+			continue;
+		}
 		if (strcmp(pch, "v") == 0) {
 			struct vec3 *vertex = malloc(sizeof(struct vec3));
-			pch = strsep(&tmp, " ");
+			pch = strtok_r(NULL, " ", &tmp);
 			vertex->x = strtof(pch, NULL);
-			pch = strsep(&tmp, " ");
+			pch = strtok_r(NULL, " ", &tmp);
 			vertex->y = strtof(pch, NULL);
-			pch = strsep(&tmp, " ");
+			pch = strtok_r(NULL, " ", &tmp);
 			vertex->z = strtof(pch, NULL);
 			if (errno) {
 				fclose(file);
@@ -129,11 +134,17 @@ struct model *model_load(const char *filename, const char *txfilename)
 			ds_vector_push_back(mdl->vertices, vertex);
 		} else if (strcmp(pch, "vt") == 0) {
 			//Textures
-			struct vec2 *tvertex = malloc(sizeof(struct vec2));
-			pch = strsep(&tmp, " ");
+			struct vec3 *tvertex = malloc(sizeof(struct vec3));
+			pch = strtok_r(NULL, " ", &tmp);
 			tvertex->x = strtof(pch, NULL);
-			pch = strsep(&tmp, " ");
+			pch = strtok_r(NULL, " ", &tmp);
 			tvertex->y = strtof(pch, NULL);
+			pch = strsep(&tmp, " ");
+			if (strcmp(pch, "") == 0) {
+				tvertex->z = 0;
+			} else {
+				tvertex->z = strtof(pch, NULL);
+			}
 			if (errno) {
 				fclose(file);
 				free(tvertex);
@@ -147,6 +158,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 		} else if (strcmp(pch, "f") == 0) {
 			// Face
 			parse_faces(mdl->faces, tmp);
+
 			if (errno) {
 				fclose(file);
 				free(line);
@@ -160,5 +172,6 @@ struct model *model_load(const char *filename, const char *txfilename)
 	fclose(file);
 	ds_vector_shrink(mdl->vertices);
 	ds_vector_shrink(mdl->faces);
+	ds_vector_shrink(mdl->textures);
 	return mdl;
 }
