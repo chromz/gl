@@ -6,6 +6,8 @@ let g:ale_linters = {
 \   'c': ['cppcheck', 'clangcheck', 'clangtidy'],
 \}
 
-command! Debug :TermdebugCommand builddir/labs/sr5 ~/Downloads/african_head.obj ~/Downloads/african_head.bmp
+command! Debug :TermdebugCommand builddir/labs/sr5 ~/Downloads/test.obj ~/Downloads/test.bmp
+command! Debug2 :TermdebugCommand builddir/labs/sr4 ~/Downloads/test.obj
+
 command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin
 command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin

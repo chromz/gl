@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TOLERANCE 0.00000001f
+#define TOLERANCE 0.0000001f
 
 static int **fbuffer;
 static float **zbuffer;
@@ -526,12 +526,27 @@ void glScale(float x, float y, float z)
 
 void glZBuffer(void)
 {
+	// Find the max and minimum
+	float min = FLT_MAX;
+	float max = -FLT_MAX;
 	for (int y = 0; y < fbheight; y++) {
 		for (int x = 0; x < fbwidth; x++) {
-			/* if (zbuffer[i][j] */
 			float z = zbuffer[y][x];
-			if ((z - FLT_MAX) <= TOLERANCE) {
-				int col = (int) roundf(255.0 * z);
+			if (fabsf((z + FLT_MAX)) >= TOLERANCE && z < min) {
+				min = z;
+			}
+			if (fabsf((z - FLT_MAX)) >= TOLERANCE && z > max) {
+				max = z;
+			}
+		}
+	}
+
+	for (int y = 0; y < fbheight; y++) {
+		for (int x = 0; x < fbwidth; x++) {
+			float z = zbuffer[y][x];
+			if (fabsf(fabsf(z) - FLT_MAX) >= TOLERANCE) {
+				int col = (int) roundf(255.0 *
+						       (z - min) / (max - min));
 				col = color24(col, col, col);
 				point(x, y, col);
 			}
