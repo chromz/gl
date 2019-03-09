@@ -13,6 +13,7 @@ int main(int argc, char **argv)
 	glScale(1.0, 1.0, 1.0);
 	glLight(0.0, 0.0, 1.0);
 	glObj(argv[1], NULL);
+	glZBuffer();
 	glFinish();
 	return 0;
 }

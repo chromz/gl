@@ -70,7 +70,7 @@ void glCreateWindow(int width, int height)
 		zbuffer[i] = malloc(width * sizeof(int));
 		for (int j = 0; j < width; j++) {
 			zbuffer[i][j] = -FLT_MAX;
-		}	
+		}
 	}
 	vpw = width;
 	vph = height;
@@ -209,10 +209,14 @@ void glLight(float x, float y, float z)
 {
 	if (light == NULL) {
 		light = malloc(sizeof(struct vec3));
+		light->x = 0.0;
+		light->y = 0.0;
+		light->z = 1.0;
 	}
-	light->x = x;
-	light->y = y;
-	light->z = z;
+	float norm = sqrtf(powf(x, 2.0) + powf(y, 2.0) + powf(z, 2.0));
+	light->x = x / norm;
+	light->y = y / norm;
+	light->z = z / norm;
 }
 
 
@@ -518,6 +522,21 @@ void glScale(float x, float y, float z)
 	scl->x = x;
 	scl->y = y;
 	scl->z = z;
+}
+
+void glZBuffer(void)
+{
+	for (int y = 0; y < fbheight; y++) {
+		for (int x = 0; x < fbwidth; x++) {
+			/* if (zbuffer[i][j] */
+			float z = zbuffer[y][x];
+			if ((z - FLT_MAX) <= TOLERANCE) {
+				int col = (int) roundf(255.0 * z);
+				col = color24(col, col, col);
+				point(x, y, col);
+			}
+		}
+	}
 }
 
 void glFinish(void)

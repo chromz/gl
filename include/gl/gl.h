@@ -32,6 +32,8 @@ void glTranslate(float x, float y, float z);
 
 void glScale(float x, float y, float z);
 
+void glZBuffer(void);
+
 void glFinish();
 
 
