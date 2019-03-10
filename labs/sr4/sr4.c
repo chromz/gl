@@ -5,6 +5,7 @@
 int main(int argc, char **argv)
 {
 	if (argc != 3) {
+		printf("Usage <flat|zbuffer> <obj file>\n");
 		return 1;
 	}
 	glInit();
