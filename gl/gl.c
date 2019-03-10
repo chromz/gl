@@ -166,13 +166,8 @@ void glColor(float r, float g, float b)
 	ccolor = color24(rint, gint, bint);
 }
 
-void glLine(float x0, float y0, float x1, float y1)
+static void bresenham(int x0w, int y0w, int x1w, int y1w)
 {
-	int x0w = ndcToInt(x0, true);
-	int y0w = ndcToInt(y0, false);
-	int x1w = ndcToInt(x1, true);
-	int y1w = ndcToInt(y1, false);
-
 	int dx = abs(x1w - x0w);
 	int dy = abs(y1w - y0w);
 	int steep = dy > dx;
@@ -203,6 +198,15 @@ void glLine(float x0, float y0, float x1, float y1)
 		}
 		offset += 2 * dy;
 	}
+}
+
+void glLine(float x0, float y0, float x1, float y1)
+{
+	int x0w = ndcToInt(x0, true);
+	int y0w = ndcToInt(y0, false);
+	int x1w = ndcToInt(x1, true);
+	int y1w = ndcToInt(y1, false);
+	bresenham(x0w, y0w, x1w, y1w);
 }
 
 void glLight(float x, float y, float z)
