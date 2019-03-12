@@ -9,18 +9,18 @@ int main(int argc, char **argv)
 		printf("Usage <flat|zbuffer> <obj file>\n");
 		return 1;
 	}
-	glInit();
-	glCreateWindow(800, 600);
-	glColor(1.0, 1.0, 1.0);
-	glTranslate(0.0, 0.0, 0.0);
-	glScale(4.5, 4.5, 4.5);
-	glLight(0.0, 0.0, 1.0);
+	gl_init();
+	gl_create_window(800, 600);
+	gl_color(1.0, 1.0, 1.0);
+	gl_translate(0.0, 0.0, 0.0);
+	gl_scale(4.5, 4.5, 4.5);
+	gl_light(0.0, 0.0, 1.0);
 	if (strcmp(argv[1], "zbuffer") == 0) {
-		glObj(argv[2], NULL);
-		glZBuffer();
+		gl_obj(argv[2], NULL);
+		gl_zbuffer();
 	} else if (strcmp(argv[1], "flat") == 0) {
-		glObj(argv[2], NULL);
+		gl_obj(argv[2], NULL);
 	}
-	glFinish();
+	gl_finish();
 	return 0;
 }

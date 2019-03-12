@@ -5,25 +5,25 @@
 
 int main(int argc, char **argv)
 {
-	glInit();
-	glCreateWindow(600, 400);
-	glViewport(100, 100, 100, 100);
-	glClearColor(1.0, 1.0, 1.0);
-	glClear();
-	glColor(1.0, 0.0, 1.0);
-	glVertex(0.0, 0.0);
-	glVertex(-1.0, 1.0);
-	glVertex(-1.0, -1.0);
-	glVertex(1.0, -1.0);
-	glVertex(1.0, 1.0);
-	glVertex(1.5, 1.5);
-	glVertex(-1.5, 1.5);
-	glVertex(1.5, -1.5);
-	glViewport(0, 0, 600, 400);
-	glLine(-1.0, 1.0, 1.0, -1.0);
-	glLine(0.3, 0.3, 0.3, 0.3);
-	glLine(0.0, 0.0, 0.0, 1.0);
-	glLine(-1.0, -1.0, 1.0, 1.0);
-	glFinish();
+	gl_init();
+	gl_create_window(600, 400);
+	gl_viewport(100, 100, 100, 100);
+	gl_clear_color(1.0, 1.0, 1.0);
+	gl_clear();
+	gl_color(1.0, 0.0, 1.0);
+	gl_vertex(0.0, 0.0);
+	gl_vertex(-1.0, 1.0);
+	gl_vertex(-1.0, -1.0);
+	gl_vertex(1.0, -1.0);
+	gl_vertex(1.0, 1.0);
+	gl_vertex(1.5, 1.5);
+	gl_vertex(-1.5, 1.5);
+	gl_vertex(1.5, -1.5);
+	gl_viewport(0, 0, 600, 400);
+	gl_line(-1.0, 1.0, 1.0, -1.0);
+	gl_line(0.3, 0.3, 0.3, 0.3);
+	gl_line(0.0, 0.0, 0.0, 1.0);
+	gl_line(-1.0, -1.0, 1.0, 1.0);
+	gl_finish();
 	return 0;
 }

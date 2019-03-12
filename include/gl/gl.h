@@ -6,35 +6,35 @@
 #include "gl/vector.h"
 #include <stddef.h>
 
-void glInit();
+void gl_init();
 
-void glCreateWindow(int width, int height);
+void gl_create_window(int width, int height);
 
-void glViewport(int x, int y, int width, int height);
+void gl_viewport(int x, int y, int width, int height);
 
-void glClear();
+void gl_clear();
 
-void glClearColor(float r, float g, float b);
+void gl_clear_color(float r, float g, float b);
 
-void glVertex(float x, float y);
+void gl_vertex(float x, float y);
 
-void glColor(float r, float g, float b);
+void gl_color(float r, float g, float b);
 
-void glLine(float x0, float y0, float x1, float y1);
+void gl_line(float x0, float y0, float x1, float y1);
 
-void glLight(float x, float y, float z);
+void gl_light(float x, float y, float z);
 
-int glObj(const char *filename, const char *txfilename);
+int gl_obj(const char *filename, const char *txfilename);
 
-void glNgon(const float *ngon, size_t size);
+void gl_ngon(const float *ngon, size_t size);
 
-void glTranslate(float x, float y, float z);
+void gl_translate(float x, float y, float z);
 
-void glScale(float x, float y, float z);
+void gl_scale(float x, float y, float z);
 
-void glZBuffer(void);
+void gl_zbuffer(void);
 
-void glFinish();
+void gl_finish();
 
 
 

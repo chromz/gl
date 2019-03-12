@@ -6,13 +6,13 @@
 
 int main(void)
 {
-	glInit();
-	glCreateWindow(800, 600);
-	glColor(1.0, 1.0, 1.0);
-	glLight(0.0, 0.0, 1.0);
-	glTranslate(0.0, 0.0, 0.0);
-	glScale(1.0, 1.0, 1.0);
-	glObj("labs/test.obj", NULL);
-	glFinish();
+	gl_init();
+	gl_create_window(800, 600);
+	gl_color(1.0, 1.0, 1.0);
+	gl_light(0.0, 0.0, 1.0);
+	gl_translate(0.0, 0.0, 0.0);
+	gl_scale(1.0, 1.0, 1.0);
+	gl_obj("labs/test.obj", NULL);
+	gl_finish();
 	return 0;
 }

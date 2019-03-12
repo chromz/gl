@@ -30,7 +30,7 @@ static struct vec3 *scl = NULL;
 
 
 
-void glInit(void)
+void gl_init(void)
 {
 	if (light == NULL) {
 		light = malloc(sizeof(struct vec3));
@@ -59,7 +59,14 @@ static inline void swap(int *a, int *b)
 	*b = temp;
 }
 
-void glCreateWindow(int width, int height)
+static inline void vecswap(struct vec3 *a, struct vec3* b)
+{
+	struct vec3 temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+void gl_create_window(int width, int height)
 {
 	fbwidth = width;
 	fbheight = height;
@@ -76,7 +83,7 @@ void glCreateWindow(int width, int height)
 	vph = height;
 }
 
-void glViewport(int x, int y, int width, int height)
+void gl_viewport(int x, int y, int width, int height)
 {
 	vpx= x;
 	vpy = y;
@@ -84,7 +91,7 @@ void glViewport(int x, int y, int width, int height)
 	vph = height;
 }
 
-void glClear(void)
+void gl_clear(void)
 {
 	for(int i = 0; i < fbheight; i++) {
 		for (int j = 0; j < fbwidth; j++) {
@@ -93,7 +100,7 @@ void glClear(void)
 	}
 }
 
-void glClearColor(float r, float g, float b)
+void gl_clear_color(float r, float g, float b)
 {
 	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
 	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
@@ -126,7 +133,7 @@ static inline void pointz(int x, int y, int color, float z)
 
 }
 
-static int ndcToInt(float val, bool isXaxis)
+static int ndc_to_int(float val, bool isXaxis)
 {
 	if (isXaxis) {
 		int xw = (int) roundf(vpx + (val + 1.0) * (vpw / 2.0));
@@ -146,10 +153,10 @@ static int ndcToInt(float val, bool isXaxis)
 /* 	} */
 /* } */
 
-void glVertex(float x, float y)
+void gl_vertex(float x, float y)
 {
-	int xw = ndcToInt(x, true);
-	int yw = ndcToInt(y, false);
+	int xw = ndc_to_int(x, true);
+	int yw = ndc_to_int(y, false);
 	point(xw, yw, ccolor);
 }
 
@@ -158,7 +165,7 @@ static inline unsigned color24(unsigned r, unsigned g, unsigned b)
 	return (r << 16u) + (g << 8u) + b;
 }
 
-void glColor(float r, float g, float b)
+void gl_color(float r, float g, float b)
 {
 	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
 	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
@@ -200,16 +207,16 @@ static void bresenham(int x0w, int y0w, int x1w, int y1w)
 	}
 }
 
-void glLine(float x0, float y0, float x1, float y1)
+void gl_line(float x0, float y0, float x1, float y1)
 {
-	int x0w = ndcToInt(x0, true);
-	int y0w = ndcToInt(y0, false);
-	int x1w = ndcToInt(x1, true);
-	int y1w = ndcToInt(y1, false);
+	int x0w = ndc_to_int(x0, true);
+	int y0w = ndc_to_int(y0, false);
+	int x1w = ndc_to_int(x1, true);
+	int y1w = ndc_to_int(y1, false);
 	bresenham(x0w, y0w, x1w, y1w);
 }
 
-void glLight(float x, float y, float z)
+void gl_light(float x, float y, float z)
 {
 	if (light == NULL) {
 		light = malloc(sizeof(struct vec3));
@@ -230,7 +237,7 @@ static inline float transform(float val, float trn, float scl)
 	return (val + trn) * scl;
 }
 
-static inline struct vec3 vec3Transform(struct vec3 *v, const struct vec3 *trn,
+static inline struct vec3 vec3_transform(struct vec3 *v, const struct vec3 *trn,
 					const struct vec3 *scl)
 {
 	return (struct vec3) {
@@ -241,17 +248,17 @@ static inline struct vec3 vec3Transform(struct vec3 *v, const struct vec3 *trn,
 }
 
 
-static void drawWireframe(const struct model *m, const struct face *f)
+static void draw_wireframe(const struct model *m, const struct face *f)
 {
 	for (size_t j = 0; j <  f->facedim; j++) {
 		struct facetup *from = ds_vector_get(f->data, j);
 		struct facetup *to = ds_vector_get(f->data,
 						(j + 1) % f->facedim);
-		struct vec3 v1 = vec3Transform(ds_vector_get(m->vertices,
+		struct vec3 v1 = vec3_transform(ds_vector_get(m->vertices,
 						from->vi), trn, scl);
-		struct vec3 v2 = vec3Transform(ds_vector_get(m->vertices,
+		struct vec3 v2 = vec3_transform(ds_vector_get(m->vertices,
 						to->vi), trn, scl);
-		glLine(v1.x, v1.y, v2.x, v2.y);
+		gl_line(v1.x, v1.y, v2.x, v2.y);
 	}
 }
 
@@ -291,11 +298,11 @@ static void drawTriangle(const struct model *m, const struct face *f)
 	struct facetup *bf = ds_vector_get(f->data, 1);
 	struct facetup *cf = ds_vector_get(f->data, 2);
 
-	struct vec3 a = vec3Transform(ds_vector_get(m->vertices, af->vi),
+	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
 				       trn, scl);
-	struct vec3 b = vec3Transform(ds_vector_get(m->vertices, bf->vi),
+	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
 				       trn, scl);
-	struct vec3 c = vec3Transform(ds_vector_get(m->vertices, cf->vi),
+	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
 				       trn, scl);
 	
 
@@ -318,12 +325,12 @@ static void drawTriangle(const struct model *m, const struct face *f)
 		bt = ds_vector_get(m->textures, bf->ti);
 		ct = ds_vector_get(m->textures, cf->ti);
 	}
-	a.x = ndcToInt(a.x, true);
-	a.y = ndcToInt(a.y, false);
-	b.x = ndcToInt(b.x, true);
-	b.y = ndcToInt(b.y, false);
-	c.x = ndcToInt(c.x, true);
-	c.y = ndcToInt(c.y, false);
+	a.x = ndc_to_int(a.x, true);
+	a.y = ndc_to_int(a.y, false);
+	b.x = ndc_to_int(b.x, true);
+	b.y = ndc_to_int(b.y, false);
+	c.x = ndc_to_int(c.x, true);
+	c.y = ndc_to_int(c.y, false);
 
 	// Bounding box
 	int minx = (int) fminf(fminf(a.x, b.x), c.x);
@@ -357,10 +364,48 @@ static void drawTriangle(const struct model *m, const struct face *f)
 	}
 
 	// Just for testing the bounding box
-	/* glLine(minx, miny, minx, maxy); */
-	/* glLine(minx, maxy, maxx, maxy); */
-	/* glLine(minx, miny, maxx, miny); */
-	/* glLine(maxx, miny, maxx, maxy); */
+	/* gl_line(minx, miny, minx, maxy); */
+	/* gl_line(minx, maxy, maxx, maxy); */
+	/* gl_line(minx, miny, maxx, miny); */
+	/* gl_line(maxx, miny, maxx, maxy); */
+
+}
+
+static void triangleLineSweep(const struct model *m, const struct face *f)
+{
+	struct facetup *af = ds_vector_get(f->data, 0);
+	struct facetup *bf = ds_vector_get(f->data, 1);
+	struct facetup *cf = ds_vector_get(f->data, 2);
+
+	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
+				       trn, scl);
+	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
+				       trn, scl);
+	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
+				       trn, scl);
+	if (a.y > b.y) {
+		vecswap(&a, &b);
+	}
+
+	if (a.y > c.y) {
+		vecswap(&a, &c);
+	}
+
+	if (b.y > c.y) {
+		vecswap(&b, &c);
+	}
+
+	struct vec3 ab = vec3_sub(&b, &a);
+	struct vec3 ac = vec3_sub(&c, &a);
+	struct vec3 crs = vec3_cross(&ab, &ac);
+	crs = vec3_normalize(&crs);
+
+	float intensity = vec3_dot(&crs, light);
+	int col = (int) roundf(255.0f * intensity);
+	if (col < 0) {
+		return;
+	}
+	col = color24(col, col, col);
 
 }
 
@@ -401,10 +446,10 @@ static bool isInside(const float x, const float y,
 	// http://alienryderflex.com/polygon/
 	bool odd = false;
 	for (size_t i = 0; i < size; i += 2) {
-		float x0 = ndcToInt(ngon[i], true);
-		float y0 = ndcToInt(ngon[i + 1], false);
-		float x1 = ndcToInt(ngon[(i + 2) % size], true);
-		float y1 = ndcToInt(ngon[(i + 3) % size], false);
+		float x0 = ndc_to_int(ngon[i], true);
+		float y0 = ndc_to_int(ngon[i + 1], false);
+		float x1 = ndc_to_int(ngon[(i + 2) % size], true);
+		float y1 = ndc_to_int(ngon[(i + 3) % size], false);
 		if ((y0 < y && y1 >= y) ||
 		    (y1 < y && y0 >= y)) {
 			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
@@ -414,7 +459,7 @@ static bool isInside(const float x, const float y,
 	return odd;
 }
 
-void glNgon(const float *ngon, size_t size)
+void gl_ngon(const float *ngon, size_t size)
 {
 	if (size % 2 != 0) {
 		return;
@@ -422,10 +467,10 @@ void glNgon(const float *ngon, size_t size)
 
 	struct vec4 box = bounding(ngon, size);
 
-	int minx = ndcToInt(box.x, true);
-	int miny = ndcToInt(box.y, false);
-	int maxx = ndcToInt(box.z, true);
-	int maxy = ndcToInt(box.w, false);
+	int minx = ndc_to_int(box.x, true);
+	int miny = ndc_to_int(box.y, false);
+	int maxx = ndc_to_int(box.z, true);
+	int maxy = ndc_to_int(box.w, false);
 
 	for (int y = miny; y <= maxy; y++) {
 		for (int x = minx; x <= maxx; x++) {
@@ -470,7 +515,7 @@ static float *setUpNgonFromFace(struct model *m, struct face *f)
 	return pol;
 }
 
-int glObj(const char *filename, const char *txfilename)
+int gl_obj(const char *filename, const char *txfilename)
 {
 	struct model *m = model_load(filename, txfilename);
 	if (m == NULL) {
@@ -485,10 +530,10 @@ int glObj(const char *filename, const char *txfilename)
 			// Experimental with all ngons
 			float *vs = setUpNgonFromFace(m, f);
 			if (vs != NULL) {
-				glNgon(vs, f->facedim * 2);
+				gl_ngon(vs, f->facedim * 2);
 				free(vs);
 			}
-			/* drawWireframe(m, f); */
+			/* draw_wireframe(m, f); */
 		}
 	}
 	ccolor = tmp;
@@ -508,7 +553,7 @@ int glObj(const char *filename, const char *txfilename)
 /* } */
 
 
-void glTranslate(float x, float y, float z)
+void gl_translate(float x, float y, float z)
 {
 	if (trn == NULL) {
 		trn = malloc(sizeof(struct vec3));
@@ -518,7 +563,7 @@ void glTranslate(float x, float y, float z)
 	trn->z = z;
 }
 
-void glScale(float x, float y, float z)
+void gl_scale(float x, float y, float z)
 {
 	if (scl == NULL) {
 		scl = malloc(sizeof(struct vec3));
@@ -528,7 +573,7 @@ void glScale(float x, float y, float z)
 	scl->z = z;
 }
 
-void glZBuffer(void)
+void gl_zbuffer(void)
 {
 	// Find the max and minimum
 	float min = FLT_MAX;
@@ -558,7 +603,7 @@ void glZBuffer(void)
 	}
 }
 
-void glFinish(void)
+void gl_finish(void)
 {
 	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);
 	for(size_t i = 0; i < vph; i++) {

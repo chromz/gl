@@ -6,14 +6,14 @@ int main(int argc, char **argv)
 	if (argc != 3) {
 		return 1;
 	}
-	glInit();
-	glCreateWindow(800, 600);
-	glColor(1.0, 1.0, 1.0);
-	glTranslate(0.0, 0.0, 0.0);
-	glScale(1.0, 1.0, 1.0);
-	/* glScale(1.0, 1.0, 1.0); */
-	glLight(1.0, 0.0, 1.0);
-	glObj(argv[1], argv[2]);
-	glFinish();
+	gl_init();
+	gl_create_window(800, 600);
+	gl_color(1.0, 1.0, 1.0);
+	gl_translate(0.0, 0.0, 0.0);
+	gl_scale(1.0, 1.0, 1.0);
+	/* gl_scale(1.0, 1.0, 1.0); */
+	gl_light(1.0, 0.0, 1.0);
+	gl_obj(argv[1], argv[2]);
+	gl_finish();
 	return 0;
 }
