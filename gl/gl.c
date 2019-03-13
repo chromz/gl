@@ -278,7 +278,7 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 	*w = 1.0 - (*u + *v);
 }
 
-static void setTextureColor(const struct model *m, float tx, float ty,
+static void set_texture_color(const struct model *m, float tx, float ty,
 			    float intensity, int *col)
 {
 	long cx = (long) floorf(tx * m->txwidth);
@@ -292,7 +292,7 @@ static void setTextureColor(const struct model *m, float tx, float ty,
 	*col += ((unsigned) (roundf(tmp * intensity)));
 }
 
-static void drawTriangle(const struct model *m, const struct face *f)
+static void draw_triangle(const struct model *m, const struct face *f)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
 	struct facetup *bf = ds_vector_get(f->data, 1);
@@ -353,7 +353,7 @@ static void drawTriangle(const struct model *m, const struct face *f)
 			if (m->texture != NULL) {
 				float tx = at->x * u + bt->x * v + ct->x * w;
 				float ty = at->y * u + bt->y * v + ct->y * w;
-				setTextureColor(m, tx, ty, intensity, &col);
+				set_texture_color(m, tx, ty, intensity, &col);
 				if (col < 0) {
 					return;
 				}
@@ -371,7 +371,7 @@ static void drawTriangle(const struct model *m, const struct face *f)
 
 }
 
-static void triangleLineSweep(const struct model *m, const struct face *f)
+static void triangle_line_sweep(const struct model *m, const struct face *f)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
 	struct facetup *bf = ds_vector_get(f->data, 1);
@@ -407,6 +407,17 @@ static void triangleLineSweep(const struct model *m, const struct face *f)
 	}
 	col = color24(col, col, col);
 
+	a.x = ndc_to_int(a.x, true);
+	a.y = ndc_to_int(a.y, false);
+	b.x = ndc_to_int(b.x, true);
+	b.y = ndc_to_int(b.y, false);
+	c.x = ndc_to_int(c.x, true);
+	c.y = ndc_to_int(c.y, false);
+	int totalh = (int) (c.y - a.y);
+	for (int y = 0; y <= totalh; y++) {
+		
+	}
+	
 }
 
 static struct vec4 bounding(const float *points, size_t size)
@@ -440,7 +451,7 @@ static struct vec4 bounding(const float *points, size_t size)
 	};
 }
 
-static bool isInside(const float x, const float y,
+static bool is_inside(const float x, const float y,
 		     const float *ngon, size_t size)
 {
 	// http://alienryderflex.com/polygon/
@@ -474,14 +485,14 @@ void gl_ngon(const float *ngon, size_t size)
 
 	for (int y = miny; y <= maxy; y++) {
 		for (int x = minx; x <= maxx; x++) {
-			if (isInside(x, y, ngon, size)) {
+			if (is_inside(x, y, ngon, size)) {
 				point(x, y, ccolor);
 			}
 		}
 	}
 }
 
-static float *setUpNgonFromFace(struct model *m, struct face *f)
+static float *setup_ngon(struct model *m, struct face *f)
 {
 	float *pol = malloc(2 * f->facedim * sizeof(float));
 	size_t i, j = 0;
@@ -525,10 +536,10 @@ int gl_obj(const char *filename, const char *txfilename)
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
-			drawTriangle(m, f);
+			draw_triangle(m, f);
 		} else if (f->facedim > 3) {
 			// Experimental with all ngons
-			float *vs = setUpNgonFromFace(m, f);
+			float *vs = setup_ngon(m, f);
 			if (vs != NULL) {
 				gl_ngon(vs, f->facedim * 2);
 				free(vs);
