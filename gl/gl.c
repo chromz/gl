@@ -373,56 +373,56 @@ static void draw_triangle(const struct model *m, const struct face *f)
 
 }
 
-static void line_sweep(struct vec3 a, struct vec3 b, struct vec3 c, int col)
+static void line_sweep(struct vec3 *a, struct vec3 *b, struct vec3 *c, int col)
 {
-	if (a.y > b.y) {
-		vecswap(&a, &b);
+	if (a->y > b->y) {
+		vecswap(a, b);
 	}
 
-	if (a.y > c.y) {
-		vecswap(&a, &c);
+	if (a->y > c->y) {
+		vecswap(a, c);
 	}
 
-	if (b.y > c.y) {
-		vecswap(&b, &c);
+	if (b->y > c->y) {
+		vecswap(b, c);
 	}
 
-	a.x = ndc_to_int(a.x, true);
-	a.y = ndc_to_int(a.y, false);
-	b.x = ndc_to_int(b.x, true);
-	b.y = ndc_to_int(b.y, false);
-	c.x = ndc_to_int(c.x, true);
-	c.y = ndc_to_int(c.y, false);
+	a->x = ndc_to_int(a->x, true);
+	a->y = ndc_to_int(a->y, false);
+	b->x = ndc_to_int(b->x, true);
+	b->y = ndc_to_int(b->y, false);
+	c->x = ndc_to_int(c->x, true);
+	c->y = ndc_to_int(c->y, false);
 
-	float dy = b.y - a.y;
-	float dx = b.x - a.x;
-	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+	float dy = b->y - a->y;
+	float dx = b->x - a->x;
+	if (dy <= TOLERANCE && dy > -TOLERANCE) {
 		return;
 	}
 
-	float m_ab =  dy / dx;
+	float m_ab = dx / dy;
 
-	dy = c.y - a.y;
-	dx = c.x - a.x;
-	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+	dy = c->y - a->y;
+	dx = c->x - a->x;
+	if (dy <= TOLERANCE && dy > -TOLERANCE) {
 		return;
 	}
 
-	float m_ac = dy / dx;
+	float m_ac = dx / dy;
 
-	dy = c.y - b.y;
-	dx = c.x - b.x;
-	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+	dy = c->y - b->y;
+	dx = c->x - b->x;
+	if (dy <= TOLERANCE && dy > -TOLERANCE) {
 		return;
 	}
 
-	float m_bc = dy / dx;
+	float m_bc = dx / dy;
 
-	int start = (int) a.y;
-	int end = (int) b.y;
+	int start = (int) a->y;
+	int end = (int) b->y;
 	for (int y = start; y <= end; y++) {
-		int x0 = (int) roundf(m_ac * (y - a.y) + a.x);
-		int x1 = (int) roundf(m_ab * (y - a.y) + a.x);
+		int x0 = (int) roundf(m_ac * (y - a->y) + a->x);
+		int x1 = (int) roundf(m_ab * (y - a->y) + a->x);
 		if (x0 > x1) {
 			swap(&x0, &x1);
 		}
@@ -431,11 +431,11 @@ static void line_sweep(struct vec3 a, struct vec3 b, struct vec3 c, int col)
 		}
 	}
 
-	start = (int) b.y;
-	end = (int) c.y;
+	start = (int) b->y;
+	end = (int) c->y;
 	for (int y = start; y <= end; y++) {
-		int x0 = roundf(m_ac * (y - a.y ) + a.x);
-		int x1 = roundf(m_bc * (y - b.y) + b.x);
+		int x0 = roundf(m_ac * (y - a->y) + a->x);
+		int x1 = roundf(m_bc * (y - b->y) + b->x);
 		if (x0 > x1) {
 			swap(&x0, &x1);
 		}
@@ -469,7 +469,7 @@ static void triangle_line_sweep(const struct model *m, const struct face *f)
 		return;
 	}
 	col = color24(col, col, col);
-	line_sweep(a, b, c, col);
+	line_sweep(&a, &b, &c, col);
 }
 
 
