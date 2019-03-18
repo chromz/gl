@@ -18,6 +18,10 @@ executable('sr5', 'sr5/sr5.c',
   include_directories : gl_include_dirs,
   link_with : gl_lib)
 
+executable('hw4', 'hw4/hw4.c',
+  include_directories : gl_include_dirs,
+  link_with : gl_lib)
+
 configure_file(input : 'test.obj',
                output : 'test.obj',
                copy: true)

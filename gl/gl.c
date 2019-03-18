@@ -71,10 +71,10 @@ void gl_create_window(int width, int height)
 	fbwidth = width;
 	fbheight = height;
 	fbuffer = malloc(sizeof(int *) * height);
-	zbuffer = malloc(sizeof(int *) * height);
+	zbuffer = malloc(sizeof(float *) * height);
 	for(int i = 0; i < height; i++) {
 		fbuffer[i] = calloc(width, sizeof(int));
-		zbuffer[i] = malloc(width * sizeof(int));
+		zbuffer[i] = malloc(width * sizeof(float));
 		for (int j = 0; j < width; j++) {
 			zbuffer[i][j] = -FLT_MAX;
 		}
@@ -115,7 +115,8 @@ void gl_clear_color(float r, float g, float b)
 
 static inline void point(int x, int y, int color)
 {
-	if (x >= vpw + vpx || y >= vph + vpy) {
+	if (x >= vpw + vpx || y >= vph + vpy || x >= fbwidth ||
+	    y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
 	fbuffer[y][x] = color;
@@ -123,7 +124,8 @@ static inline void point(int x, int y, int color)
 
 static inline void pointz(int x, int y, int color, float z)
 {
-	if (x >= vpw + vpx || y >= vph + vpy) {
+	if (x >= vpw + vpx || y >= vph + vpy || x >= fbwidth ||
+	    y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
 	if (z > zbuffer[y][x]) {
@@ -248,19 +250,19 @@ static inline struct vec3 vec3_transform(struct vec3 *v, const struct vec3 *trn,
 }
 
 
-static void draw_wireframe(const struct model *m, const struct face *f)
-{
-	for (size_t j = 0; j <  f->facedim; j++) {
-		struct facetup *from = ds_vector_get(f->data, j);
-		struct facetup *to = ds_vector_get(f->data,
-						(j + 1) % f->facedim);
-		struct vec3 v1 = vec3_transform(ds_vector_get(m->vertices,
-						from->vi), trn, scl);
-		struct vec3 v2 = vec3_transform(ds_vector_get(m->vertices,
-						to->vi), trn, scl);
-		gl_line(v1.x, v1.y, v2.x, v2.y);
-	}
-}
+/* static void draw_wireframe(const struct model *m, const struct face *f) */
+/* { */
+/* 	for (size_t j = 0; j <  f->facedim; j++) { */
+/* 		struct facetup *from = ds_vector_get(f->data, j); */
+/* 		struct facetup *to = ds_vector_get(f->data, */
+/* 						(j + 1) % f->facedim); */
+/* 		struct vec3 v1 = vec3_transform(ds_vector_get(m->vertices, */
+/* 						from->vi), trn, scl); */
+/* 		struct vec3 v2 = vec3_transform(ds_vector_get(m->vertices, */
+/* 						to->vi), trn, scl); */
+/* 		gl_line(v1.x, v1.y, v2.x, v2.y); */
+/* 	} */
+/* } */
 
 static void barycentric(const struct vec3 *a, const struct vec3 *b,
 			const struct vec3 *c, const struct vec3 *p,
@@ -371,18 +373,8 @@ static void draw_triangle(const struct model *m, const struct face *f)
 
 }
 
-static void triangle_line_sweep(const struct model *m, const struct face *f)
+static void line_sweep(struct vec3 a, struct vec3 b, struct vec3 c, int col)
 {
-	struct facetup *af = ds_vector_get(f->data, 0);
-	struct facetup *bf = ds_vector_get(f->data, 1);
-	struct facetup *cf = ds_vector_get(f->data, 2);
-
-	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
-				       trn, scl);
-	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
-				       trn, scl);
-	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
-				       trn, scl);
 	if (a.y > b.y) {
 		vecswap(&a, &b);
 	}
@@ -395,30 +387,92 @@ static void triangle_line_sweep(const struct model *m, const struct face *f)
 		vecswap(&b, &c);
 	}
 
-	struct vec3 ab = vec3_sub(&b, &a);
-	struct vec3 ac = vec3_sub(&c, &a);
-	struct vec3 crs = vec3_cross(&ab, &ac);
-	crs = vec3_normalize(&crs);
-
-	float intensity = vec3_dot(&crs, light);
-	int col = (int) roundf(255.0f * intensity);
-	if (col < 0) {
-		return;
-	}
-	col = color24(col, col, col);
-
 	a.x = ndc_to_int(a.x, true);
 	a.y = ndc_to_int(a.y, false);
 	b.x = ndc_to_int(b.x, true);
 	b.y = ndc_to_int(b.y, false);
 	c.x = ndc_to_int(c.x, true);
 	c.y = ndc_to_int(c.y, false);
-	int totalh = (int) (c.y - a.y);
-	for (int y = 0; y <= totalh; y++) {
-		
+
+	float dy = b.y - a.y;
+	float dx = b.x - a.x;
+	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+		return;
 	}
-	
+
+	float m_ab =  dy / dx;
+
+	dy = c.y - a.y;
+	dx = c.x - a.x;
+	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+		return;
+	}
+
+	float m_ac = dy / dx;
+
+	dy = c.y - b.y;
+	dx = c.x - b.x;
+	if (dx <= TOLERANCE && dx > -TOLERANCE) {
+		return;
+	}
+
+	float m_bc = dy / dx;
+
+	int start = (int) a.y;
+	int end = (int) b.y;
+	for (int y = start; y <= end; y++) {
+		int x0 = (int) roundf(m_ac * (y - a.y) + a.x);
+		int x1 = (int) roundf(m_ab * (y - a.y) + a.x);
+		if (x0 > x1) {
+			swap(&x0, &x1);
+		}
+		for (int x = x0; x <= x1; x++) {
+			point(x, y, col);
+		}
+	}
+
+	start = (int) b.y;
+	end = (int) c.y;
+	for (int y = start; y <= end; y++) {
+		int x0 = roundf(m_ac * (y - a.y ) + a.x);
+		int x1 = roundf(m_bc * (y - b.y) + b.x);
+		if (x0 > x1) {
+			swap(&x0, &x1);
+		}
+		for (int x = x0; x <= x1; x++) {
+			point(x, y, col);
+		}
+	}
 }
+
+static void triangle_line_sweep(const struct model *m, const struct face *f)
+{
+	struct facetup *af = ds_vector_get(f->data, 0);
+	struct facetup *bf = ds_vector_get(f->data, 1);
+	struct facetup *cf = ds_vector_get(f->data, 2);
+
+	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
+				       trn, scl);
+	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
+				       trn, scl);
+	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
+				       trn, scl);
+
+
+	struct vec3 ab = vec3_sub(&b, &a);
+	struct vec3 ac = vec3_sub(&c, &a);
+	struct vec3 crs = vec3_cross(&ab, &ac);
+	crs = vec3_normalize(&crs);
+	float intensity = vec3_dot(&crs, light);
+	int col = (int) roundf(255.0f * intensity);
+	if (col < 0) {
+		return;
+	}
+	col = color24(col, col, col);
+	line_sweep(a, b, c, col);
+}
+
+
 
 static struct vec4 bounding(const float *points, size_t size)
 {
@@ -536,7 +590,8 @@ int gl_obj(const char *filename, const char *txfilename)
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
-			draw_triangle(m, f);
+			/* draw_triangle(m, f); */
+			triangle_line_sweep(m, f);
 		} else if (f->facedim > 3) {
 			// Experimental with all ngons
 			float *vs = setup_ngon(m, f);
@@ -617,7 +672,7 @@ void gl_zbuffer(void)
 void gl_finish(void)
 {
 	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);
-	for(size_t i = 0; i < vph; i++) {
+	for(size_t i = 0; i < fbheight; i++) {
 		free(fbuffer[i]);
 		free(zbuffer[i]);
 	}
