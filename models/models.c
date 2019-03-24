@@ -100,6 +100,8 @@ struct model *model_load(const char *filename, const char *txfilename)
 	struct model *mdl = malloc(sizeof(struct model));
 	mdl->textures = NULL;
 	mdl->texture = NULL;
+	mdl->txheight = 0;
+	mdl->txwidth = 0;
 	if (txfilename != NULL) {
 		bmp_load(txfilename, &mdl->texture, &mdl->txwidth,
 				&mdl->txheight);
