@@ -373,100 +373,100 @@ static void draw_triangle(const struct model *m, const struct face *f)
 
 }
 
-static void line_sweep(struct vec3 *a, struct vec3 *b, struct vec3 *c, int col)
-{
-	if (a->y > b->y) {
-		vecswap(a, b);
-	}
+/* static void line_sweep(struct vec3 *a, struct vec3 *b, struct vec3 *c, int col) */
+/* { */
+/* 	if (a->y > b->y) { */
+/* 		vecswap(a, b); */
+/* 	} */
 
-	if (a->y > c->y) {
-		vecswap(a, c);
-	}
+/* 	if (a->y > c->y) { */
+/* 		vecswap(a, c); */
+/* 	} */
 
-	if (b->y > c->y) {
-		vecswap(b, c);
-	}
+/* 	if (b->y > c->y) { */
+/* 		vecswap(b, c); */
+/* 	} */
 
-	a->x = ndc_to_int(a->x, true);
-	a->y = ndc_to_int(a->y, false);
-	b->x = ndc_to_int(b->x, true);
-	b->y = ndc_to_int(b->y, false);
-	c->x = ndc_to_int(c->x, true);
-	c->y = ndc_to_int(c->y, false);
+/* 	a->x = ndc_to_int(a->x, true); */
+/* 	a->y = ndc_to_int(a->y, false); */
+/* 	b->x = ndc_to_int(b->x, true); */
+/* 	b->y = ndc_to_int(b->y, false); */
+/* 	c->x = ndc_to_int(c->x, true); */
+/* 	c->y = ndc_to_int(c->y, false); */
 
-	float dy = c->y - a->y;
-	float dx = c->x - a->x;
-	if (dy < TOLERANCE && dy > -TOLERANCE) {
-		return;
-	}
-	float m_ac = dx / dy;
+/* 	float dy = c->y - a->y; */
+/* 	float dx = c->x - a->x; */
+/* 	if (dy < TOLERANCE && dy > -TOLERANCE) { */
+/* 		return; */
+/* 	} */
+/* 	float m_ac = dx / dy; */
 
-	dy = b->y - a->y;
-	dx = b->x - a->x;
-	if (dy > TOLERANCE || dy < -TOLERANCE) {
-		float m_ab = dx / dy;
-		int start = (int) a->y;
-		int end = (int) b->y;
-		for (int y = start; y <= end; y++) {
-			int x0 = (int) roundf(m_ac * (y - a->y) + a->x);
-			int x1 = (int) roundf(m_ab * (y - a->y) + a->x);
-			if (x0 > x1) {
-				swap(&x0, &x1);
-			}
-			for (int x = x0; x <= x1; x++) {
-				point(x, y, col);
-			}
-		}
-	}
+/* 	dy = b->y - a->y; */
+/* 	dx = b->x - a->x; */
+/* 	if (dy > TOLERANCE || dy < -TOLERANCE) { */
+/* 		float m_ab = dx / dy; */
+/* 		int start = (int) a->y; */
+/* 		int end = (int) b->y; */
+/* 		for (int y = start; y <= end; y++) { */
+/* 			int x0 = (int) roundf(m_ac * (y - a->y) + a->x); */
+/* 			int x1 = (int) roundf(m_ab * (y - a->y) + a->x); */
+/* 			if (x0 > x1) { */
+/* 				swap(&x0, &x1); */
+/* 			} */
+/* 			for (int x = x0; x <= x1; x++) { */
+/* 				point(x, y, col); */
+/* 			} */
+/* 		} */
+/* 	} */
 
 
-	dy = c->y - b->y;
-	dx = c->x - b->x;
-	if (dy > TOLERANCE || dy < -TOLERANCE) {
-		float m_bc = dx / dy;
-		int start = (int) b->y;
-		int end = (int) c->y;
-		for (int y = start; y <= end; y++) {
-			int x0 = (int) roundf(m_ac * (y - a->y) + a->x);
-			int x1 = (int) roundf(m_bc * (y - b->y) + b->x);
-			if (x0 > x1) {
-				swap(&x0, &x1);
-			}
-			for (int x = x0; x <= x1; x++) {
-				point(x, y, col);
-			}
-		}
-	}
+/* 	dy = c->y - b->y; */
+/* 	dx = c->x - b->x; */
+/* 	if (dy > TOLERANCE || dy < -TOLERANCE) { */
+/* 		float m_bc = dx / dy; */
+/* 		int start = (int) b->y; */
+/* 		int end = (int) c->y; */
+/* 		for (int y = start; y <= end; y++) { */
+/* 			int x0 = (int) roundf(m_ac * (y - a->y) + a->x); */
+/* 			int x1 = (int) roundf(m_bc * (y - b->y) + b->x); */
+/* 			if (x0 > x1) { */
+/* 				swap(&x0, &x1); */
+/* 			} */
+/* 			for (int x = x0; x <= x1; x++) { */
+/* 				point(x, y, col); */
+/* 			} */
+/* 		} */
+/* 	} */
 
 	
-}
+/* } */
 
-static void triangle_line_sweep(const struct model *m, const struct face *f)
-{
-	struct facetup *af = ds_vector_get(f->data, 0);
-	struct facetup *bf = ds_vector_get(f->data, 1);
-	struct facetup *cf = ds_vector_get(f->data, 2);
+/* static void triangle_line_sweep(const struct model *m, const struct face *f) */
+/* { */
+/* 	struct facetup *af = ds_vector_get(f->data, 0); */
+/* 	struct facetup *bf = ds_vector_get(f->data, 1); */
+/* 	struct facetup *cf = ds_vector_get(f->data, 2); */
 
-	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
-				       trn, scl);
-	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
-				       trn, scl);
-	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
-				       trn, scl);
+/* 	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi), */
+/* 				       trn, scl); */
+/* 	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi), */
+/* 				       trn, scl); */
+/* 	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi), */
+/* 				       trn, scl); */
 
 
-	struct vec3 ab = vec3_sub(&b, &a);
-	struct vec3 ac = vec3_sub(&c, &a);
-	struct vec3 crs = vec3_cross(&ab, &ac);
-	crs = vec3_normalize(&crs);
-	float intensity = vec3_dot(&crs, light);
-	int col = (int) roundf(255.0f * intensity);
-	if (col < 0) {
-		return;
-	}
-	col = color24(col, col, col);
-	line_sweep(&a, &b, &c, col);
-}
+/* 	struct vec3 ab = vec3_sub(&b, &a); */
+/* 	struct vec3 ac = vec3_sub(&c, &a); */
+/* 	struct vec3 crs = vec3_cross(&ab, &ac); */
+/* 	crs = vec3_normalize(&crs); */
+/* 	float intensity = vec3_dot(&crs, light); */
+/* 	int col = (int) roundf(255.0f * intensity); */
+/* 	if (col < 0) { */
+/* 		return; */
+/* 	} */
+/* 	col = color24(col, col, col); */
+/* 	line_sweep(&a, &b, &c, col); */
+/* } */
 
 
 
@@ -586,8 +586,8 @@ int gl_obj(const char *filename, const char *txfilename)
 	for (size_t i = 0; i < m->faces->size; i++) {
 		struct face *f = ds_vector_get(m->faces, i);
 		if (f->facedim == 3) {
-			/* draw_triangle(m, f); */
-			triangle_line_sweep(m, f);
+			draw_triangle(m, f);
+			/* triangle_line_sweep(m, f); */
 		} else if (f->facedim > 3) {
 			// Experimental with all ngons
 			float *vs = setup_ngon(m, f);
