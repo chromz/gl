@@ -427,8 +427,8 @@ static void line_sweep(struct vec3 *a, struct vec3 *b, struct vec3 *c, int col)
 		int start = (int) b->y;
 		int end = (int) c->y;
 		for (int y = start; y <= end; y++) {
-			int x0 = roundf(m_ac * (y - a->y) + a->x);
-			int x1 = roundf(m_bc * (y - b->y) + b->x);
+			int x0 = (int) roundf(m_ac * (y - a->y) + a->x);
+			int x1 = (int) roundf(m_bc * (y - b->y) + b->x);
 			if (x0 > x1) {
 				swap(&x0, &x1);
 			}
