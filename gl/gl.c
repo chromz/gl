@@ -33,19 +33,19 @@ static struct vec3 *scl = NULL;
 void gl_init(void)
 {
 	if (light == NULL) {
-		light = malloc(sizeof(struct vec3));
+		light = malloc(sizeof(*light));
 		light->x = 0;
 		light->y = 0;
 		light->z = 0;
 	}
 	if (trn == NULL) {
-		trn = malloc(sizeof(struct vec3));
+		trn = malloc(sizeof(*trn));
 		trn->x = 0;
 		trn->y = 0;
 		trn->z = 0;
 	}
 	if (scl == NULL) {
-		scl = malloc(sizeof(struct vec3));
+		scl = malloc(sizeof(*scl));
 		scl->x = 1.0;
 		scl->y = 1.0;
 		scl->z = 1.0;
@@ -70,11 +70,11 @@ void gl_create_window(int width, int height)
 {
 	fbwidth = width;
 	fbheight = height;
-	fbuffer = malloc(sizeof(int *) * height);
-	zbuffer = malloc(sizeof(float *) * height);
+	fbuffer = malloc(sizeof(*fbuffer) * height);
+	zbuffer = malloc(sizeof(*zbuffer) * height);
 	for(int i = 0; i < height; i++) {
-		fbuffer[i] = calloc(width, sizeof(int));
-		zbuffer[i] = malloc(width * sizeof(float));
+		fbuffer[i] = calloc(width, sizeof(**fbuffer));
+		zbuffer[i] = malloc(width * sizeof(**zbuffer));
 		for (int j = 0; j < width; j++) {
 			zbuffer[i][j] = -FLT_MAX;
 		}
@@ -221,12 +221,12 @@ void gl_line(float x0, float y0, float x1, float y1)
 void gl_light(float x, float y, float z)
 {
 	if (light == NULL) {
-		light = malloc(sizeof(struct vec3));
-		light->x = 0.0;
-		light->y = 0.0;
-		light->z = 1.0;
+		light = malloc(sizeof(*light));
+		light->x = 0.0F;
+		light->y = 0.0F;
+		light->z = 1.0F;
 	}
-	float norm = sqrtf(powf(x, 2.0) + powf(y, 2.0) + powf(z, 2.0));
+	float norm = sqrtf(powf(x, 2.0F) + powf(y, 2.0F) + powf(z, 2.0F));
 	light->x = x / norm;
 	light->y = y / norm;
 	light->z = z / norm;
@@ -544,7 +544,7 @@ void gl_ngon(const float *ngon, size_t size)
 
 static float *setup_ngon(struct model *m, struct face *f)
 {
-	float *pol = malloc(2 * f->facedim * sizeof(float));
+	float *pol = malloc(2 * f->facedim * sizeof(*pol));
 	size_t i, j = 0;
 	struct facetup *fa = ds_vector_get(f->data, 0);
 	struct vec3 *a = ds_vector_get(m->vertices, fa->vi);
@@ -618,7 +618,7 @@ int gl_obj(const char *filename, const char *txfilename)
 void gl_translate(float x, float y, float z)
 {
 	if (trn == NULL) {
-		trn = malloc(sizeof(struct vec3));
+		trn = malloc(sizeof(*trn));
 	}
 	trn->x = x;
 	trn->y = y;
@@ -628,7 +628,7 @@ void gl_translate(float x, float y, float z)
 void gl_scale(float x, float y, float z)
 {
 	if (scl == NULL) {
-		scl = malloc(sizeof(struct vec3));
+		scl = malloc(sizeof(*scl));
 	}
 	scl->x = x;
 	scl->y = y;

@@ -9,8 +9,8 @@
 
 struct ds_vector *ds_vector_new(void)
 {
-	struct ds_vector *v = malloc(sizeof(struct ds_vector));
-	v->data = malloc(DS_VECTOR_INIT_SIZE * sizeof(void *));
+	struct ds_vector *v = malloc(sizeof(*v));
+	v->data = malloc(DS_VECTOR_INIT_SIZE * sizeof(*v->data));
 	v->size = 0;
 	v->el_free = NULL;
 	v->capacity = 4;
@@ -31,7 +31,7 @@ static bool resize(struct ds_vector *v, size_t min_cap)
 	if (new_cap == 0) {
 		new_cap = min_cap;
 	}
-	void **new_data = realloc(v->data, sizeof(void *) * new_cap); 
+	void **new_data = realloc(v->data, sizeof(*new_data) * new_cap); 
 	if (!new_data) {
 		return false;
 	}
@@ -85,7 +85,7 @@ bool ds_vector_remove(struct ds_vector *v, size_t i)
 
 bool ds_vector_shrink(struct ds_vector *v)
 {
-	void **new_data = realloc(v->data, sizeof(void *) * v->size);
+	void **new_data = realloc(v->data, sizeof(*new_data) * v->size);
 	if (new_data) {
 		v->data = new_data;
 		v->capacity = v->size;

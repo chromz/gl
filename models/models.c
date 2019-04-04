@@ -14,7 +14,7 @@
 
 static char *readline(FILE *file)
 {
-	char *line = malloc(sizeof(char));
+	char *line = malloc(sizeof(*line));
 	int index = 0;
 	int c = fgetc(file);
 	if (c == EOF) {
@@ -23,7 +23,7 @@ static char *readline(FILE *file)
 	}
 	while (c != EOF && c != '\n') {
 		line[index++] = c;
-		char *l = realloc(line, (index + 1) * sizeof(char));
+		char *l = realloc(line, (index + 1) * sizeof(*l));
 		if (l == NULL) {
 			free(line);
 			return NULL;
@@ -64,12 +64,12 @@ static void parse_faces(struct ds_vector *faces, char *line)
 {
 
 	char *val = strsep(&line, " ");
-	struct face *f = malloc(sizeof(struct face));
+	struct face *f = malloc(sizeof(*f));
 	f->data = ds_vector_new_with_free(elm_free);
 	f->facedim = 0;
 	while (val != NULL) {
 		char  *res = strsep(&val, "/");
-		struct facetup *data = malloc(sizeof(struct facetup));
+		struct facetup *data = malloc(sizeof(*data));
 		data->vi = strtoimax(res, NULL, 0) - 1;
 		res = strsep(&val, "/");
 		if (strcmp(res, "") == 0) {
@@ -97,7 +97,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 	if (file == NULL) {
 		return NULL;
 	}
-	struct model *mdl = malloc(sizeof(struct model));
+	struct model *mdl = malloc(sizeof(*mdl));
 	mdl->textures = NULL;
 	mdl->texture = NULL;
 	mdl->txheight = 0;
@@ -119,7 +119,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 			continue;
 		}
 		if (strcmp(pch, "v") == 0) {
-			struct vec3 *vertex = malloc(sizeof(struct vec3));
+			struct vec3 *vertex = malloc(sizeof(*vertex));
 			pch = strtok_r(NULL, " ", &tmp);
 			vertex->x = strtof(pch, NULL);
 			pch = strtok_r(NULL, " ", &tmp);
@@ -136,7 +136,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 			ds_vector_push_back(mdl->vertices, vertex);
 		} else if (strcmp(pch, "vt") == 0) {
 			//Textures
-			struct vec3 *tvertex = malloc(sizeof(struct vec3));
+			struct vec3 *tvertex = malloc(sizeof(*tvertex));
 			pch = strtok_r(NULL, " ", &tmp);
 			tvertex->x = strtof(pch, NULL);
 			pch = strtok_r(NULL, " ", &tmp);
