@@ -239,7 +239,7 @@ static inline float transform(float val, float trn, float scl)
 }
 
 static inline struct vec3 vec3_transform(struct vec3 *v, const struct vec3 *trn,
-					const struct vec3 *scl)
+					 const struct vec3 *scl)
 {
 	return (struct vec3) {
 		.x = transform(v->x, trn->x, scl->x),
@@ -266,7 +266,7 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 }
 
 static void set_texture_color(const struct model *m, float tx, float ty,
-			    float intensity, int *col)
+			      float intensity, int *col)
 {
 	long cx = (long) floorf(tx * (float) m->txwidth);
 	long cy = (long) floorf(ty * (float) m->txheight);
@@ -398,7 +398,7 @@ static struct vec4 bounding(const float *points, size_t size)
 }
 
 static bool is_inside(const float x, const float y,
-		     const float *ngon, size_t size)
+		      const float *ngon, size_t size)
 {
 	// http://alienryderflex.com/polygon/
 	bool odd = false;
