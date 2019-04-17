@@ -1,9 +1,11 @@
 // Rodrigo Custodio
+
 #include "bmp/bmp.h"
 #include "gl/gl.h"
 #include "models/models.h"
 
 #include <float.h>
+
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
@@ -12,7 +14,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TOLERANCE 0.0000001f
+#define TOLERANCE 0.0000001F
+#define MAX_COL_VAL 255
+#define MAX_COL_VAL_F 255.0F
+#define R_OFFSET 16U
+#define G_OFFSET 8U
 
 static int **fbuffer;
 static float **zbuffer;
@@ -46,22 +52,15 @@ void gl_init(void)
 	}
 	if (scl == NULL) {
 		scl = malloc(sizeof(*scl));
-		scl->x = 1.0;
-		scl->y = 1.0;
-		scl->z = 1.0;
+		scl->x = 1.0F;
+		scl->y = 1.0F;
+		scl->z = 1.0F;
 	}
 }
 
 static inline void swap(int *a, int *b)
 {
 	int temp = *a;
-	*a = *b;
-	*b = temp;
-}
-
-static inline void vecswap(struct vec3 *a, struct vec3* b)
-{
-	struct vec3 temp = *a;
 	*a = *b;
 	*b = temp;
 }
@@ -102,10 +101,13 @@ void gl_clear(void)
 
 void gl_clear_color(float r, float g, float b)
 {
-	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
-	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
-	unsigned bint = floor(b >= 1.0 ? 255 : b * 255.0);
-	int color = (rint << 16u) + (gint << 8u) + bint;
+	unsigned rint = (unsigned) floorf(r >= 1.0 ?
+					  MAX_COL_VAL : r * MAX_COL_VAL_F);
+	unsigned gint = (unsigned) floorf(g >= 1.0 ?
+					  MAX_COL_VAL : g * MAX_COL_VAL_F);
+	unsigned bint = (unsigned) floorf(b >= 1.0 ?
+					  MAX_COL_VAL : b * MAX_COL_VAL_F);
+	int color = (int) ((rint << R_OFFSET) + (gint << G_OFFSET) + bint);
 	for(int i = 0; i < fbheight; i++) {
 		for (int j = 0; j < fbwidth; j++) {
 			fbuffer[i][j] = color;
@@ -138,22 +140,15 @@ static inline void pointz(int x, int y, int color, float z)
 static int ndc_to_int(float val, bool isXaxis)
 {
 	if (isXaxis) {
-		int xw = (int) roundf(vpx + (val + 1.0) * (vpw / 2.0));
+		int xw = (int) roundf((float) vpx +
+				      (val + 1.0F) * ((float) vpw / 2.0F));
 		return (xw - 1) >= 0 ? xw - 1 : 0;
 	}
 
-	int yw = (int) roundf(vpy + (val + 1.0) * (vph / 2.0));
+	int yw = (int) roundf((float) vpy +
+			      (val + 1.0F) * ((float) vph / 2.0F));
 	return (yw - 1) >= 0 ? yw - 1 : 0;
 }
-
-/* static float intToNdc(int val, bool isXaxis) */
-/* { */
-/* 	if (isXaxis) { */
-/* 		return (val - vpx) * (2.0 / vpw) - 1.0; */
-/* 	} else { */
-/* 		return (val - vpy) * (2.0 / vph) - 1.0; */
-/* 	} */
-/* } */
 
 void gl_vertex(float x, float y)
 {
@@ -162,16 +157,19 @@ void gl_vertex(float x, float y)
 	point(xw, yw, ccolor);
 }
 
-static inline unsigned color24(unsigned r, unsigned g, unsigned b)
+static inline int color24(unsigned r, unsigned g, unsigned b)
 {
-	return (r << 16u) + (g << 8u) + b;
+	return (int) ((r << R_OFFSET) + (g << G_OFFSET) + b);
 }
 
 void gl_color(float r, float g, float b)
 {
-	unsigned rint = floor(r >= 1.0 ? 255 : r * 255.0);
-	unsigned gint = floor(g >= 1.0 ? 255 : g * 255.0);
-	unsigned bint = floor(b >= 1.0 ? 255 : b * 255.0);
+	unsigned rint = (unsigned) floorf(r >= 1.0F ?
+					  MAX_COL_VAL : r * MAX_COL_VAL_F);
+	unsigned gint = (unsigned) floorf(g >= 1.0F ?
+					  MAX_COL_VAL : g * MAX_COL_VAL_F);
+	unsigned bint = (unsigned) floorf(b >= 1.0F ?
+					  MAX_COL_VAL : b * MAX_COL_VAL_F);
 	ccolor = color24(rint, gint, bint);
 }
 
@@ -222,11 +220,12 @@ void gl_light(float x, float y, float z)
 {
 	if (light == NULL) {
 		light = malloc(sizeof(*light));
-		light->x = 0.0F;
-		light->y = 0.0F;
-		light->z = 1.0F;
 	}
-	float norm = sqrtf(powf(x, 2.0F) + powf(y, 2.0F) + powf(z, 2.0F));
+	light->x = x;
+	light->y = y;
+	light->z = z;
+
+	float norm = vec3_norm(light);
 	light->x = x / norm;
 	light->y = y / norm;
 	light->z = z / norm;
@@ -250,48 +249,37 @@ static inline struct vec3 vec3_transform(struct vec3 *v, const struct vec3 *trn,
 }
 
 
-/* static void draw_wireframe(const struct model *m, const struct face *f) */
-/* { */
-/* 	for (size_t j = 0; j <  f->facedim; j++) { */
-/* 		struct facetup *from = ds_vector_get(f->data, j); */
-/* 		struct facetup *to = ds_vector_get(f->data, */
-/* 						(j + 1) % f->facedim); */
-/* 		struct vec3 v1 = vec3_transform(ds_vector_get(m->vertices, */
-/* 						from->vi), trn, scl); */
-/* 		struct vec3 v2 = vec3_transform(ds_vector_get(m->vertices, */
-/* 						to->vi), trn, scl); */
-/* 		gl_line(v1.x, v1.y, v2.x, v2.y); */
-/* 	} */
-/* } */
-
 static void barycentric(const struct vec3 *a, const struct vec3 *b,
 			const struct vec3 *c, const struct vec3 *p,
 			float *w, float *v, float *u)
 {
 	float det = (b->y - c->y)*(a->x - c->x) + (c->x - b->x)*(a->y - c->y);
 	if (det <= TOLERANCE ) {
-		*u = -1.0;
-		*v = -1.0;
-		*w = -1.0;
+		*u = -1.0F;
+		*v = -1.0F;
+		*w = -1.0F;
 		return;
 	}
 	*u = ((b->y - c->y)*(p->x - c->x) + (c->x - b->x)*(p->y - c->y)) / det;
 	*v = ((c->y - a->y)*(p->x - c->x) + (a->x - c->x)*(p->y - c->y)) / det;
-	*w = 1.0 - (*u + *v);
+	*w = 1.0F - (*u + *v);
 }
 
 static void set_texture_color(const struct model *m, float tx, float ty,
 			    float intensity, int *col)
 {
-	long cx = (long) floorf(tx * m->txwidth);
-	long cy = (long) floorf(ty * m->txheight);
+	long cx = (long) floorf(tx * (float) m->txwidth);
+	long cy = (long) floorf(ty * (float) m->txheight);
 	unsigned pcol = m->texture[cy][cx];
-	int tmp = pcol >> 16u & 0xFFu;
-	*col = ((unsigned) (roundf((tmp * intensity)))) << 16u;
-	tmp = pcol >> 8u & 0xFFu;
-	*col += ((unsigned) (roundf(tmp * intensity))) << 8u;
-	tmp = pcol & 0xFFu;
-	*col += ((unsigned) (roundf(tmp * intensity)));
+	const unsigned MASK = 0xFFU;
+	int tmp = (int) (pcol >> R_OFFSET & MASK);
+	*col = (int) (((unsigned) (roundf(((float) tmp * intensity)))) <<
+		      R_OFFSET);
+	tmp = (int) (pcol >> G_OFFSET & MASK);
+	*col += (int) (((unsigned) (roundf((float) tmp * intensity))) <<
+		       G_OFFSET);
+	tmp = (int) (pcol & MASK);
+	*col += (int) ((unsigned) (roundf((float) tmp * intensity)));
 }
 
 static void draw_triangle(const struct model *m, const struct face *f)
@@ -315,9 +303,11 @@ static void draw_triangle(const struct model *m, const struct face *f)
 
 	float intensity = vec3_dot(&crs, light);
 	int col = 0;
-	struct vec3 *at, *bt, *ct;
+	struct vec3 *at;
+	struct vec3 *bt;
+	struct vec3 *ct;
 	if (!m->texture) {
-		col = (int) roundf(255.0f * intensity);
+		col = (int) roundf(MAX_COL_VAL_F * intensity);
 		if (col < 0) {
 			return;
 		}
@@ -327,12 +317,12 @@ static void draw_triangle(const struct model *m, const struct face *f)
 		bt = ds_vector_get(m->textures, bf->ti);
 		ct = ds_vector_get(m->textures, cf->ti);
 	}
-	a.x = ndc_to_int(a.x, true);
-	a.y = ndc_to_int(a.y, false);
-	b.x = ndc_to_int(b.x, true);
-	b.y = ndc_to_int(b.y, false);
-	c.x = ndc_to_int(c.x, true);
-	c.y = ndc_to_int(c.y, false);
+	a.x = (float) ndc_to_int(a.x, true);
+	a.y = (float) ndc_to_int(a.y, false);
+	b.x = (float) ndc_to_int(b.x, true);
+	b.y = (float) ndc_to_int(b.y, false);
+	c.x = (float) ndc_to_int(c.x, true);
+	c.y = (float) ndc_to_int(c.y, false);
 
 	// Bounding box
 	int minx = (int) fminf(fminf(a.x, b.x), c.x);
@@ -342,14 +332,16 @@ static void draw_triangle(const struct model *m, const struct face *f)
 
 	for (int y = miny; y <= maxy; y++) {
 		for (int x = minx; x <= maxx; x++) {
-			float w, v, u;
+			float w;
+			float v;
+			float u;
 			struct vec3 p = {
-				.x = x,
-				.y = y,
+				.x = (float) x,
+				.y = (float) y,
 				.z = 0,
 			};
 			barycentric(&a, &b, &c, &p, &w, &v, &u);
-			if (w < 0.0f || v < 0.0f || u < 0.0f) {
+			if (w < 0.0F || v < 0.0F || u < 0.0F) {
 				continue;
 			}
 			if (m->texture != NULL) {
@@ -372,102 +364,6 @@ static void draw_triangle(const struct model *m, const struct face *f)
 	/* gl_line(maxx, miny, maxx, maxy); */
 
 }
-
-/* static void line_sweep(struct vec3 *a, struct vec3 *b, struct vec3 *c, int col) */
-/* { */
-/* 	if (a->y > b->y) { */
-/* 		vecswap(a, b); */
-/* 	} */
-
-/* 	if (a->y > c->y) { */
-/* 		vecswap(a, c); */
-/* 	} */
-
-/* 	if (b->y > c->y) { */
-/* 		vecswap(b, c); */
-/* 	} */
-
-/* 	a->x = ndc_to_int(a->x, true); */
-/* 	a->y = ndc_to_int(a->y, false); */
-/* 	b->x = ndc_to_int(b->x, true); */
-/* 	b->y = ndc_to_int(b->y, false); */
-/* 	c->x = ndc_to_int(c->x, true); */
-/* 	c->y = ndc_to_int(c->y, false); */
-
-/* 	float dy = c->y - a->y; */
-/* 	float dx = c->x - a->x; */
-/* 	if (dy < TOLERANCE && dy > -TOLERANCE) { */
-/* 		return; */
-/* 	} */
-/* 	float m_ac = dx / dy; */
-
-/* 	dy = b->y - a->y; */
-/* 	dx = b->x - a->x; */
-/* 	if (dy > TOLERANCE || dy < -TOLERANCE) { */
-/* 		float m_ab = dx / dy; */
-/* 		int start = (int) a->y; */
-/* 		int end = (int) b->y; */
-/* 		for (int y = start; y <= end; y++) { */
-/* 			int x0 = (int) roundf(m_ac * (y - a->y) + a->x); */
-/* 			int x1 = (int) roundf(m_ab * (y - a->y) + a->x); */
-/* 			if (x0 > x1) { */
-/* 				swap(&x0, &x1); */
-/* 			} */
-/* 			for (int x = x0; x <= x1; x++) { */
-/* 				point(x, y, col); */
-/* 			} */
-/* 		} */
-/* 	} */
-
-
-/* 	dy = c->y - b->y; */
-/* 	dx = c->x - b->x; */
-/* 	if (dy > TOLERANCE || dy < -TOLERANCE) { */
-/* 		float m_bc = dx / dy; */
-/* 		int start = (int) b->y; */
-/* 		int end = (int) c->y; */
-/* 		for (int y = start; y <= end; y++) { */
-/* 			int x0 = (int) roundf(m_ac * (y - a->y) + a->x); */
-/* 			int x1 = (int) roundf(m_bc * (y - b->y) + b->x); */
-/* 			if (x0 > x1) { */
-/* 				swap(&x0, &x1); */
-/* 			} */
-/* 			for (int x = x0; x <= x1; x++) { */
-/* 				point(x, y, col); */
-/* 			} */
-/* 		} */
-/* 	} */
-
-	
-/* } */
-
-/* static void triangle_line_sweep(const struct model *m, const struct face *f) */
-/* { */
-/* 	struct facetup *af = ds_vector_get(f->data, 0); */
-/* 	struct facetup *bf = ds_vector_get(f->data, 1); */
-/* 	struct facetup *cf = ds_vector_get(f->data, 2); */
-
-/* 	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi), */
-/* 				       trn, scl); */
-/* 	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi), */
-/* 				       trn, scl); */
-/* 	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi), */
-/* 				       trn, scl); */
-
-
-/* 	struct vec3 ab = vec3_sub(&b, &a); */
-/* 	struct vec3 ac = vec3_sub(&c, &a); */
-/* 	struct vec3 crs = vec3_cross(&ab, &ac); */
-/* 	crs = vec3_normalize(&crs); */
-/* 	float intensity = vec3_dot(&crs, light); */
-/* 	int col = (int) roundf(255.0f * intensity); */
-/* 	if (col < 0) { */
-/* 		return; */
-/* 	} */
-/* 	col = color24(col, col, col); */
-/* 	line_sweep(&a, &b, &c, col); */
-/* } */
-
 
 
 static struct vec4 bounding(const float *points, size_t size)
@@ -507,10 +403,10 @@ static bool is_inside(const float x, const float y,
 	// http://alienryderflex.com/polygon/
 	bool odd = false;
 	for (size_t i = 0; i < size; i += 2) {
-		float x0 = ndc_to_int(ngon[i], true);
-		float y0 = ndc_to_int(ngon[i + 1], false);
-		float x1 = ndc_to_int(ngon[(i + 2) % size], true);
-		float y1 = ndc_to_int(ngon[(i + 3) % size], false);
+		float x0 = (float) ndc_to_int(ngon[i], true);
+		float y0 = (float) ndc_to_int(ngon[i + 1], false);
+		float x1 = (float) ndc_to_int(ngon[(i + 2) % size], true);
+		float y1 = (float) ndc_to_int(ngon[(i + 3) % size], false);
 		if ((y0 < y && y1 >= y) ||
 		    (y1 < y && y0 >= y)) {
 			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
@@ -535,7 +431,7 @@ void gl_ngon(const float *ngon, size_t size)
 
 	for (int y = miny; y <= maxy; y++) {
 		for (int x = minx; x <= maxx; x++) {
-			if (is_inside(x, y, ngon, size)) {
+			if (is_inside((float) x, (float) y, ngon, size)) {
 				point(x, y, ccolor);
 			}
 		}
@@ -545,7 +441,8 @@ void gl_ngon(const float *ngon, size_t size)
 static float *setup_ngon(struct model *m, struct face *f)
 {
 	float *pol = malloc(2 * f->facedim * sizeof(*pol));
-	size_t i, j = 0;
+	size_t i = 0;
+	size_t j = 0;
 	struct facetup *fa = ds_vector_get(f->data, 0);
 	struct vec3 *a = ds_vector_get(m->vertices, fa->vi);
 	struct facetup *fb = ds_vector_get(f->data, 1);
@@ -559,7 +456,7 @@ static float *setup_ngon(struct model *m, struct face *f)
 	crs = vec3_normalize(&crs);
 
 	float intensity = vec3_dot(&crs, light);
-	int col = (int) roundf(255.0 * intensity);
+	int col = (int) roundf(MAX_COL_VAL_F * intensity);
 	if (col < 0) {
 		free(pol);
 		return NULL;
@@ -603,18 +500,6 @@ int gl_obj(const char *filename, const char *txfilename)
 	return 1;
 }
 
-/* static inline int getPoint(int x, int y) */
-/* { */
-/* 	if (x >= vpw && y < vph) { */
-/* 		return fb[vpw -1][y]; */
-/* 	} */
-/* 	if (x < vpw && y >= vph) { */
-/* 		return fb[x][vph - 1]; */
-/* 	} */
-/* 	return fb[y][x]; */
-/* } */
-
-
 void gl_translate(float x, float y, float z)
 {
 	if (trn == NULL) {
@@ -656,7 +541,7 @@ void gl_zbuffer(void)
 		for (int x = 0; x < fbwidth; x++) {
 			float z = zbuffer[y][x];
 			if (fabsf(fabsf(z) - FLT_MAX) >= TOLERANCE) {
-				int col = (int) roundf(255.0 *
+				int col = (int) roundf(MAX_COL_VAL_F *
 						       (z - min) / (max - min));
 				col = color24(col, col, col);
 				point(x, y, col);
