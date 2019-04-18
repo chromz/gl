@@ -19,15 +19,12 @@ static inline  void w_dword(FILE * file, long l)
 	fwrite(&l, 4, 1, file);
 }
 
-static void buffer_free(int **buffer, int allocated)
+static void buffer_free(int *buffer)
 {
-	for (int i = 0; i < allocated; i++) {
-		free(buffer[i]);
-	}
 	free(buffer);
 }
 
-int bmp_load(const char *filename, int ***buffer, long *width, long *height)
+int bmp_load(const char *filename, int **buffer, long *width, long *height)
 {
 	if (*buffer != NULL || width == NULL || height == NULL) {
 		return 0;
@@ -58,18 +55,18 @@ int bmp_load(const char *filename, int ***buffer, long *width, long *height)
 		return 0;
 	}
 	fseek(file, header_s, SEEK_SET);
-	*buffer = malloc((*height) * sizeof(int *));
+	*buffer = malloc((*width) * (*height) * sizeof(int *));
 	for (int i = 0; i < *height; i++) {
-		(*buffer)[i] = malloc((*width) * sizeof(int));
 		for (int j = 0; j < *width; j++) {
 			char color[3];
 			if (fread(color, 1, 3, file) != 3) {
-				buffer_free(*buffer, i);
+				buffer_free(*buffer);
 				fclose(file);
 				return 0;
 			}
-			(*buffer)[i][j] = (color[2] << 16U) + (color[1] << 8U) +
-				    color[0];
+			(*buffer)[i * (*width) + j] = 
+				(int) (((unsigned) color[2] << 16U) +
+				((unsigned) color[1] << 8U) + color[0]);
 		}
 	}
 	/* fseek(file, 2, SEEK_SET); */

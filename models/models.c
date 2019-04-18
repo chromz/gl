@@ -38,9 +38,6 @@ static char *readline(FILE *file)
 
 void model_free(struct model *m)
 {
-	for (int i = 0; i < m->txheight; i++) {
-		free(m->texture[i]);
-	}
 	free(m->texture);
 	ds_vector_free(m->vertices);
 	ds_vector_free(m->textures);

@@ -263,7 +263,7 @@ static void set_texture_color(const struct model *m, float tx, float ty,
 {
 	long cx = (long) floorf(tx * (float) m->txwidth);
 	long cy = (long) floorf(ty * (float) m->txheight);
-	unsigned pcol = m->texture[cy][cx];
+	unsigned pcol = m->texture[cy * m->txwidth + cx];
 	const unsigned MASK = 0xFFU;
 	int tmp = (int) (pcol >> R_OFFSET & MASK);
 	*col = (int) (((unsigned) (roundf(((float) tmp * intensity)))) <<

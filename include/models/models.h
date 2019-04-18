@@ -8,7 +8,7 @@ struct model {
 	struct ds_vector *vertices;
 	struct ds_vector *faces;
 	struct ds_vector *textures;
-	int **texture;
+	int *texture;
 	long txwidth;
 	long txheight;
 };
