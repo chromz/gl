@@ -20,8 +20,8 @@
 #define R_OFFSET 16U
 #define G_OFFSET 8U
 
-static int **fbuffer;
-static float **zbuffer;
+static int *fbuffer;
+static float *zbuffer;
 
 static int fbwidth;
 static int fbheight;
@@ -69,14 +69,10 @@ void gl_create_window(int width, int height)
 {
 	fbwidth = width;
 	fbheight = height;
-	fbuffer = malloc(sizeof(*fbuffer) * height);
-	zbuffer = malloc(sizeof(*zbuffer) * height);
-	for(int i = 0; i < height; i++) {
-		fbuffer[i] = calloc(width, sizeof(**fbuffer));
-		zbuffer[i] = malloc(width * sizeof(**zbuffer));
-		for (int j = 0; j < width; j++) {
-			zbuffer[i][j] = -FLT_MAX;
-		}
+	fbuffer = calloc(width * height, sizeof(*fbuffer));
+	zbuffer = malloc(sizeof(*zbuffer) * width * height);
+	for (int i = 0; i < width * height; i++) {
+		zbuffer[i] = -FLT_MAX;
 	}
 	vpw = width;
 	vph = height;
@@ -92,10 +88,8 @@ void gl_viewport(int x, int y, int width, int height)
 
 void gl_clear(void)
 {
-	for(int i = 0; i < fbheight; i++) {
-		for (int j = 0; j < fbwidth; j++) {
-			fbuffer[i][j] = 0;
-		}
+	for (int i = 0; i < fbwidth * fbheight; i++) {
+		fbuffer[i] = 0;
 	}
 }
 
@@ -108,10 +102,8 @@ void gl_clear_color(float r, float g, float b)
 	unsigned bint = (unsigned) floorf(b >= 1.0 ?
 					  MAX_COL_VAL : b * MAX_COL_VAL_F);
 	int color = (int) ((rint << R_OFFSET) + (gint << G_OFFSET) + bint);
-	for(int i = 0; i < fbheight; i++) {
-		for (int j = 0; j < fbwidth; j++) {
-			fbuffer[i][j] = color;
-		}
+	for (int i = 0; i < fbwidth * fbheight; i++) {
+		fbuffer[i] = color;
 	}
 }
 
@@ -121,7 +113,7 @@ static inline void point(int x, int y, int color)
 	    y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
-	fbuffer[y][x] = color;
+	fbuffer[y * fbwidth + x] = color;
 }
 
 static inline void pointz(int x, int y, int color, float z)
@@ -130,9 +122,10 @@ static inline void pointz(int x, int y, int color, float z)
 	    y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
-	if (z > zbuffer[y][x]) {
-		fbuffer[y][x] = color;
-		zbuffer[y][x] = z;
+	int index = y * fbwidth + x;
+	if (z > zbuffer[index]) {
+		fbuffer[index] = color;
+		zbuffer[index] = z;
 	}
 
 }
@@ -527,7 +520,7 @@ void gl_zbuffer(void)
 	float max = -FLT_MAX;
 	for (int y = 0; y < fbheight; y++) {
 		for (int x = 0; x < fbwidth; x++) {
-			float z = zbuffer[y][x];
+			float z = zbuffer[y * fbwidth + x];
 			if (fabsf((z + FLT_MAX)) >= TOLERANCE && z < min) {
 				min = z;
 			}
@@ -539,7 +532,7 @@ void gl_zbuffer(void)
 
 	for (int y = 0; y < fbheight; y++) {
 		for (int x = 0; x < fbwidth; x++) {
-			float z = zbuffer[y][x];
+			float z = zbuffer[y * fbwidth + x];
 			if (fabsf(fabsf(z) - FLT_MAX) >= TOLERANCE) {
 				int col = (int) roundf(MAX_COL_VAL_F *
 						       (z - min) / (max - min));
@@ -553,10 +546,6 @@ void gl_zbuffer(void)
 void gl_finish(void)
 {
 	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);
-	for(size_t i = 0; i < fbheight; i++) {
-		free(fbuffer[i]);
-		free(zbuffer[i]);
-	}
 	free(fbuffer);
 	free(zbuffer);
 	free(light);

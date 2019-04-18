@@ -1,7 +1,6 @@
 
 
-let g:ale_c_build_dir = 'builddir'
-let g:ale_c_clangtidy_checks =  ['*']
+let g:ale_c_clangtidy_checks =  ['*', '-cppcoreguidelines-avoid-magic-numbers', '-readability-magic-numbers']
 let g:ale_linters = {
 \   'c': ['cppcheck', 'clangcheck', 'clangtidy'],
 \}

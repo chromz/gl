@@ -68,7 +68,7 @@ int bmp_load(const char *filename, int ***buffer, long *width, long *height)
 				fclose(file);
 				return 0;
 			}
-			(*buffer)[i][j] = (color[2] << 16u) + (color[1] << 8u) +
+			(*buffer)[i][j] = (color[2] << 16U) + (color[1] << 8U) +
 				    color[0];
 		}
 	}
@@ -78,7 +78,7 @@ int bmp_load(const char *filename, int ***buffer, long *width, long *height)
 	return 1;
 }
 
-int bmp_write(const char *filename, int **fb, int width, int height)
+int bmp_write(const char *filename, int *fb, int width, int height)
 {
 
 	FILE *file;
@@ -89,27 +89,27 @@ int bmp_write(const char *filename, int **fb, int width, int height)
 	// Image
 	w_char(file, 'B');
 	w_char(file, 'M');
-	w_dword(file, 54l + width * height * 3l);
-	w_dword(file, 0l);
-	w_dword(file, 54l);
+	w_dword(file, 54L + width * height * 3L);
+	w_dword(file, 0L);
+	w_dword(file, 54L);
 
 
 	// Image
-	w_dword(file, 40l);
+	w_dword(file, 40L);
 	w_dword(file, (long) width);
 	w_dword(file, (long) height);
 	w_word(file, 1);
 	w_word(file, 24);
-	w_dword(file, 0l);
-	w_dword(file, width * height * 3l);
-	w_dword(file, 0l);
-	w_dword(file, 0l);
-	w_dword(file, 0l);
-	w_dword(file, 0l);
+	w_dword(file, 0L);
+	w_dword(file, width * height * 3L);
+	w_dword(file, 0L);
+	w_dword(file, 0L);
+	w_dword(file, 0L);
+	w_dword(file, 0L);
 
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			fwrite(&fb[y][x], 3, 1, file);
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			fwrite(&fb[y * width + x], 3, 1, file);
 		}
 	}
 

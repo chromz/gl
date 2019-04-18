@@ -2,6 +2,7 @@
 gl_src = [
   'gl.c',
   'vector.c',
+  'matrix.c'
 ]
 
 
