@@ -9,8 +9,8 @@ struct model {
 	struct ds_vector *faces;
 	struct ds_vector *textures;
 	int *texture;
-	long txwidth;
-	long txheight;
+	unsigned txwidth;
+	unsigned txheight;
 };
 
 struct facetup {

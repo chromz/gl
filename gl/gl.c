@@ -261,8 +261,8 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 static void set_texture_color(const struct model *m, float tx, float ty,
 			      float intensity, int *col)
 {
-	long cx = (long) floorf(tx * (float) m->txwidth);
-	long cy = (long) floorf(ty * (float) m->txheight);
+	int cx = (int) floorf(tx * (float) m->txwidth);
+	int cy = (int) floorf(ty * (float) m->txheight);
 	unsigned pcol = m->texture[cy * m->txwidth + cx];
 	const unsigned MASK = 0xFFU;
 	int tmp = (int) (pcol >> R_OFFSET & MASK);

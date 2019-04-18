@@ -24,7 +24,8 @@ static void buffer_free(int *buffer)
 	free(buffer);
 }
 
-int bmp_load(const char *filename, int **buffer, long *width, long *height)
+int bmp_load(const char *filename, int **buffer, unsigned *width,
+	     unsigned *height)
 {
 	if (*buffer != NULL || width == NULL || height == NULL) {
 		return 0;
