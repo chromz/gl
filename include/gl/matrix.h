@@ -19,7 +19,8 @@ struct mat4f mat4f_mul4(const struct mat4f *a, const struct mat4f *b);
 // Pure laziness
 struct vec4 mat4f_mul_vec4(const struct mat4f *a, const struct vec4 *b);
 
-void mat4f_set(struct mat4f *m, const unsigned x, const unsigned y, float val);
+void mat4f_set(struct mat4f *m, const unsigned row, const unsigned col,
+	       float val);
 
 float mat4f_get(const struct mat4f *m, const unsigned x, const unsigned y);
 

@@ -38,6 +38,7 @@ static struct mat4f *scale_mat = NULL;
 static struct mat4f *translation_mat = NULL;
 static struct mat4f *rotation_mat = NULL;
 static struct mat4f *viewport_mat = NULL;
+static struct mat4f *projection_mat = NULL;
 static struct mat4f *look_at_mat = NULL;
 
 
@@ -67,6 +68,10 @@ void gl_init(void)
 		viewport_mat = mat4f_identity_p();
 	}
 
+	if (projection_mat == NULL) {
+		projection_mat = mat4f_identity_p();
+	}
+
 	if (look_at_mat == NULL) {
 		look_at_mat = mat4f_identity_p();
 	}
@@ -90,6 +95,9 @@ void gl_create_window(int width, int height)
 	}
 	vpw = width;
 	vph = height;
+
+	// Viewport
+	gl_viewport(0, 0, width, height);
 }
 
 void gl_viewport(int x, int y, int width, int height)
@@ -147,24 +155,41 @@ static inline void pointz(int x, int y, int color, float z)
 
 }
 
-static int ndc_to_int(float val, bool isXaxis)
+static struct vec4 ndc_to_int_2f(float x, float y)
 {
-	if (isXaxis) {
-		int xw = (int) roundf((float) vpx +
-				      (val + 1.0F) * ((float) vpw / 2.0F));
-		return (xw - 1) >= 0 ? xw - 1 : 0;
-	}
+	struct vec4 v;
+	v.x = x;
+	v.y = y;
+	v.z = 1.0F;
+	v.w = 1.0F;
+	v = mat4f_mul_vec4(viewport_mat, &v);
+	v.x = (((int) v.x - 1) < 0) ? 0 : v.x - 1;
+	v.y = (((int) v.y - 1) < 0) ? 0 : v.y - 1;
+	return v;
+}
 
-	int yw = (int) roundf((float) vpy +
-			      (val + 1.0F) * ((float) vph / 2.0F));
-	return (yw - 1) >= 0 ? yw - 1 : 0;
+static struct vec4 ndc_to_int_3f(float x, float y, float z)
+{
+	struct vec4 v;
+	v.x = x;
+	v.y = y;
+	v.z = z;
+	v.w = 1.0F;
+	v = mat4f_mul_vec4(viewport_mat, &v);
+	v.x = (((int) v.x - 1) < 0) ? 0 : v.x - 1;
+	v.y = (((int) v.y - 1) < 0) ? 0 : v.y - 1;
+	return v;
+}
+
+static inline struct vec4 ndc_to_int_vec4(struct vec4 *v)
+{
+	return mat4f_mul_vec4(viewport_mat, v);
 }
 
 void gl_vertex(float x, float y)
 {
-	int xw = ndc_to_int(x, true);
-	int yw = ndc_to_int(y, false);
-	point(xw, yw, ccolor);
+	struct vec4 v = ndc_to_int_2f(x, y);
+	point((int) v.x, (int) v.y, ccolor);
 }
 
 static inline int color24(unsigned r, unsigned g, unsigned b)
@@ -219,11 +244,9 @@ static void bresenham(int x0w, int y0w, int x1w, int y1w)
 
 void gl_line(float x0, float y0, float x1, float y1)
 {
-	int x0w = ndc_to_int(x0, true);
-	int y0w = ndc_to_int(y0, false);
-	int x1w = ndc_to_int(x1, true);
-	int y1w = ndc_to_int(y1, false);
-	bresenham(x0w, y0w, x1w, y1w);
+	struct vec4 v0 = ndc_to_int_2f(x0, y0);
+	struct vec4 v1 = ndc_to_int_2f(x1, y1);
+	bresenham(v0.x, v0.y, v1.x, v1.y);
 }
 
 void gl_light(float x, float y, float z)
@@ -239,13 +262,15 @@ void gl_light(float x, float y, float z)
 	light->z = z / norm;
 }
 
-void gl_look_at(struct vec3 eye, struct vec3 center, struct vec3 up)
+void gl_look_at(struct vec3 eye, struct vec3 center, struct vec3 u)
 {
+	assert(look_at_mat != NULL && projection_mat != NULL);
 	eye_vec = eye;
 	center_vec = center;
 	struct vec3 tmp = vec3_sub(&eye, &center);
+	mat4f_set(projection_mat, 3, 2, -1.0F / vec3_norm(&tmp));
 	struct vec3 z = vec3_normalize(&tmp);
-	tmp = vec3_cross(&up, &z);
+	tmp = vec3_cross(&u, &z);
 	struct vec3 x = vec3_normalize(&tmp);
 	tmp = vec3_cross(&z, &x);
 	struct vec3 y = vec3_normalize(&tmp);
@@ -278,10 +303,13 @@ static inline struct vec3 vec3_transform(struct vec3 *v)
 	aug.y = v->y;
 	aug.z = v->z;
 	aug.w = 1;
-	struct vec4 tmp = mat4f_mul_vec4(translation_mat, &aug);
-	// WIP
+	struct vec4 tmp = mat4f_mul_vec4(rotation_mat, &aug);
+	tmp = mat4f_mul_vec4(translation_mat, &tmp);
 	tmp = mat4f_mul_vec4(scale_mat, &tmp);
-	tmp = mat4f_mul_vec4(rotation_mat, &tmp);
+
+	tmp = mat4f_mul_vec4(look_at_mat, &tmp);
+	tmp = mat4f_mul_vec4(projection_mat, &tmp);
+	tmp = mat4f_mul_vec4(viewport_mat, &tmp);
 
 	return (struct vec3) {
 		.x = tmp.x / tmp.w,
@@ -356,12 +384,6 @@ static void draw_triangle(const struct model *m, const struct face *f)
 		bt = ds_vector_get(m->textures, bf->ti);
 		ct = ds_vector_get(m->textures, cf->ti);
 	}
-	a.x = (float) ndc_to_int(a.x, true);
-	a.y = (float) ndc_to_int(a.y, false);
-	b.x = (float) ndc_to_int(b.x, true);
-	b.y = (float) ndc_to_int(b.y, false);
-	c.x = (float) ndc_to_int(c.x, true);
-	c.y = (float) ndc_to_int(c.y, false);
 
 	// Bounding box
 	int minx = (int) fminf(fminf(a.x, b.x), c.x);
@@ -442,13 +464,13 @@ static bool is_inside(const float x, const float y,
 	// http://alienryderflex.com/polygon/
 	bool odd = false;
 	for (size_t i = 0; i < size; i += 2) {
-		float x0 = (float) ndc_to_int(ngon[i], true);
-		float y0 = (float) ndc_to_int(ngon[i + 1], false);
-		float x1 = (float) ndc_to_int(ngon[(i + 2) % size], true);
-		float y1 = (float) ndc_to_int(ngon[(i + 3) % size], false);
-		if ((y0 < y && y1 >= y) ||
-		    (y1 < y && y0 >= y)) {
-			float intercept = x0 + (y - y0) / (y1 - y0) * (x1 - x0);
+		struct vec4 v0 = ndc_to_int_2f(ngon[i], ngon[i + 1]);
+		struct vec4 v1 = ndc_to_int_2f(ngon[i + 2 % size],
+					       ngon[i + 3 % size]);
+		if ((v0.y < y && v1.y >= y) ||
+		    (v1.y < y && v0.y >= y)) {
+			float intercept = v0.x + (y - v0.y) / (v1.y - v0.y) *
+					  (v1.x - v0.x);
 			odd ^= (unsigned) (intercept < x);
 		}
 	}
@@ -463,13 +485,11 @@ void gl_ngon(const float *ngon, size_t size)
 
 	struct vec4 box = bounding(ngon, size);
 
-	int minx = ndc_to_int(box.x, true);
-	int miny = ndc_to_int(box.y, false);
-	int maxx = ndc_to_int(box.z, true);
-	int maxy = ndc_to_int(box.w, false);
+	struct vec4 minv = ndc_to_int_2f(box.x, box.y);
+	struct vec4 maxv = ndc_to_int_2f(box.z, box.w);
 
-	for (int y = miny; y <= maxy; y++) {
-		for (int x = minx; x <= maxx; x++) {
+	for (int y = minv.y; y <= maxv.y; y++) {
+		for (int x = minv.x; x <= maxv.x; x++) {
 			if (is_inside((float) x, (float) y, ngon, size)) {
 				point(x, y, ccolor);
 			}
@@ -559,14 +579,11 @@ void gl_rotate(float angle, float x, float y, float z)
 {
 	struct vec3 v;
 	if (x == 0.0F && y == 0.0F && z == 0.0F) {
-		v.x = 1.0F;
-		v.y = 1.0F;
-		v.z = 1.0F;
-	} else {
-		v.x = x;
-		v.y = y;
-		v.z = z;
+		return;
 	}
+	v.x = x;
+	v.y = y;
+	v.z = z;
 	v = vec3_normalize(&v);
 	float c = cosf(angle);
 	float s = sinf(angle);
@@ -629,6 +646,7 @@ void gl_finish(void)
 	free(scale_mat);
 	free(translation_mat);
 	free(rotation_mat);
-	free(look_at_mat);
 	free(viewport_mat);
+	free(projection_mat);
+	free(look_at_mat);
 }
