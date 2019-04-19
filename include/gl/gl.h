@@ -34,7 +34,7 @@ void gl_scale(float x, float y, float z);
 
 void gl_translate(float x, float y, float z);
 
-void gl_rotate(float x, float y, float z);
+void gl_rotate(float angle, float x, float y, float z);
 
 void gl_zbuffer(void);
 

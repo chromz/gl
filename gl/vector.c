@@ -46,6 +46,13 @@ struct vec3 vec3_cross(const struct vec3 *a, const struct vec3 *b)
 struct vec3 vec3_normalize(const struct vec3 *a)
 {
 	float norm = vec3_norm(a);
+	if (norm == 0.0F) {
+		return (struct vec3) {
+			.x = 0.0F,
+			.y = 0.0F,
+			.z = 0.0F,
+		};
+	}
 	return (struct vec3) {
 		.x = a->x / norm,
 		.y = a->y / norm,

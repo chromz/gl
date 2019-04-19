@@ -36,6 +36,7 @@ static struct vec3 center_vec;
 static struct vec3 *light = NULL;
 static struct mat4f *scale_mat = NULL;
 static struct mat4f *translation_mat = NULL;
+static struct mat4f *rotation_mat = NULL;
 static struct mat4f *viewport_mat = NULL;
 static struct mat4f *look_at_mat = NULL;
 
@@ -56,6 +57,10 @@ void gl_init(void)
 
 	if (translation_mat == NULL) {
 		translation_mat = mat4f_identity_p();
+	}
+
+	if (rotation_mat == NULL) {
+		rotation_mat = mat4f_identity_p();
 	}
 
 	if (viewport_mat == NULL) {
@@ -268,15 +273,15 @@ void gl_look_at(struct vec3 eye, struct vec3 center, struct vec3 up)
 
 static inline struct vec3 vec3_transform(struct vec3 *v)
 {
-	/* struct mat4f projection = mat4f_identity(); */
 	struct vec4 aug;
 	aug.x = v->x;
 	aug.y = v->y;
 	aug.z = v->z;
 	aug.w = 1;
-	struct vec4 tmp = mat4f_mul_vec4(scale_mat, &aug);
+	struct vec4 tmp = mat4f_mul_vec4(translation_mat, &aug);
 	// WIP
-	tmp = mat4f_mul_vec4(translation_mat, &tmp);
+	tmp = mat4f_mul_vec4(scale_mat, &tmp);
+	tmp = mat4f_mul_vec4(rotation_mat, &tmp);
 
 	return (struct vec3) {
 		.x = tmp.x / tmp.w,
@@ -291,7 +296,7 @@ static void barycentric(const struct vec3 *a, const struct vec3 *b,
 			float *w, float *v, float *u)
 {
 	float det = (b->y - c->y)*(a->x - c->x) + (c->x - b->x)*(a->y - c->y);
-	if (det <= TOLERANCE ) {
+	if (det == 0.0F) {
 		*u = -1.0F;
 		*v = -1.0F;
 		*w = -1.0F;
@@ -550,6 +555,41 @@ void gl_translate(float x, float y, float z)
 	translation_mat->data[11] = z;
 }
 
+void gl_rotate(float angle, float x, float y, float z)
+{
+	struct vec3 v;
+	if (x == 0.0F && y == 0.0F && z == 0.0F) {
+		v.x = 1.0F;
+		v.y = 1.0F;
+		v.z = 1.0F;
+	} else {
+		v.x = x;
+		v.y = y;
+		v.z = z;
+	}
+	v = vec3_normalize(&v);
+	float c = cosf(angle);
+	float s = sinf(angle);
+	float k = (1.0F - c);
+	rotation_mat->data[0] = powf(v.x, 2.0F) * k + c;
+	rotation_mat->data[1] = v.x * v.y * k - v.z * s;
+	rotation_mat->data[2] = v.x * v.z * k + v.y * s;
+	rotation_mat->data[3] = 0.0F;
+	rotation_mat->data[4] = v.y * v.x * k + v.z * s;
+	rotation_mat->data[5] = powf(v.y, 2.0F) * k + c;
+	rotation_mat->data[6] = v.y * v.z * k - v.x * s;
+	rotation_mat->data[7] = 0.0F;
+	rotation_mat->data[8] = v.x * v.z * k - v.y * s;
+	rotation_mat->data[9] = v.y * v.z * k + v.x * s;
+	rotation_mat->data[10] = powf(v.z, 2.0F) * k + c;
+	rotation_mat->data[11] = 0.0F;
+	rotation_mat->data[12] = 0.0F;
+	rotation_mat->data[13] = 0.0F;
+	rotation_mat->data[14] = 0.0F;
+	rotation_mat->data[15] = 1.0F;
+
+}
+
 void gl_zbuffer(void)
 {
 	// Find the max and minimum
@@ -588,6 +628,7 @@ void gl_finish(void)
 	free(light);
 	free(scale_mat);
 	free(translation_mat);
+	free(rotation_mat);
 	free(look_at_mat);
 	free(viewport_mat);
 }
