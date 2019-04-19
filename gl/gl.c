@@ -26,10 +26,6 @@ static float zdepth = 255.0F;
 
 static int fbwidth;
 static int fbheight;
-static int vpx = 0;
-static int vpy = 0;
-static int vpw = 0;
-static int vph = 0;
 static int ccolor = 0;
 static struct vec3 eye_vec;
 static struct vec3 center_vec;
@@ -93,8 +89,6 @@ void gl_create_window(int width, int height)
 	for (int i = 0; i < width * height; i++) {
 		zbuffer[i] = -FLT_MAX;
 	}
-	vpw = width;
-	vph = height;
 
 	// Viewport
 	gl_viewport(0, 0, width, height);
@@ -134,8 +128,7 @@ void gl_clear_color(float r, float g, float b)
 
 static inline void point(int x, int y, int color)
 {
-	if (x >= vpw + vpx || y >= vph + vpy || x >= fbwidth ||
-	    y >= fbheight || x < 0 || y < 0) {
+	if (x >= fbwidth || y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
 	fbuffer[y * fbwidth + x] = color;
@@ -143,8 +136,7 @@ static inline void point(int x, int y, int color)
 
 static inline void pointz(int x, int y, int color, float z)
 {
-	if (x >= vpw + vpx || y >= vph + vpy || x >= fbwidth ||
-	    y >= fbheight || x < 0 || y < 0) {
+	if (x >= fbwidth || y >= fbheight || x < 0 || y < 0) {
 		return;
 	}
 	int index = y * fbwidth + x;
