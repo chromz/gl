@@ -40,8 +40,9 @@ void model_free(struct model *m)
 {
 	free(m->texture);
 	ds_vector_free(m->vertices);
-	ds_vector_free(m->textures);
 	ds_vector_free(m->faces);
+	ds_vector_free(m->textures);
+	ds_vector_free(m->normals);
 	free(m);
 }
 
@@ -106,6 +107,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 	mdl->vertices = ds_vector_new_with_free(elm_free);
 	mdl->faces = ds_vector_new_with_free(face_free);
 	mdl->textures = ds_vector_new_with_free(elm_free);
+	mdl->normals = ds_vector_new_with_free(elm_free);
 	char *line;
 	while ((line = readline(file)) != NULL) {
 		char *tmp;
@@ -153,6 +155,21 @@ struct model *model_load(const char *filename, const char *txfilename)
 			ds_vector_push_back(mdl->textures, tvertex);
 		} else if (strcmp(pch, "vn") == 0) {
 			// Normals
+			struct vec3 *nvertex = malloc(sizeof(*nvertex));
+			pch = strtok_r(NULL, " ", &tmp);
+			nvertex->x = strtof(pch, NULL);
+			pch = strtok_r(NULL, " ", &tmp);
+			nvertex->y = strtof(pch, NULL);
+			pch = strtok_r(NULL, " ", &tmp);
+			nvertex->z = strtof(pch, NULL);
+			if (errno) {
+				fclose(file);
+				free(nvertex);
+				free(line);
+				model_free(mdl);
+				return NULL;
+			}
+			ds_vector_push_back(mdl->normals, nvertex);
 		} else if (strcmp(pch, "f") == 0) {
 			// Face
 			parse_faces(mdl->faces, tmp);

@@ -372,29 +372,22 @@ static void draw_triangle(const struct model *m, const struct face *f)
 	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi));
 	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi));
 	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi));
+
+	// Get normals
+	struct vec3 *an = ds_vector_get(m->normals, af->ni);
+	struct vec3 *bn = ds_vector_get(m->normals, bf->ni);
+	struct vec3 *cn = ds_vector_get(m->normals, cf->ni);
 	
 
-	struct vec3 ab = vec3_sub(&b, &a);
-	struct vec3 ac = vec3_sub(&c, &a);
-	struct vec3 crs = vec3_cross(&ab, &ac);
-	crs = vec3_normalize(&crs);
-
-	float intensity = vec3_dot(&crs, light);
-	int col = 0;
 	struct vec3 *at;
 	struct vec3 *bt;
 	struct vec3 *ct;
-	if (!m->texture) {
-		col = (int) roundf(MAX_COL_VAL_F * intensity);
-		if (col < 0) {
-			return;
-		}
-		col = color24(col, col, col);
-	} else {
+	if (m->texture) {
 		at = ds_vector_get(m->textures, af->ti);
 		bt = ds_vector_get(m->textures, bf->ti);
 		ct = ds_vector_get(m->textures, cf->ti);
 	}
+	
 
 	// Bounding box
 	int minx = (int) fminf(fminf(a.x, b.x), c.x);
@@ -416,13 +409,21 @@ static void draw_triangle(const struct model *m, const struct face *f)
 			if (w < 0.0F || v < 0.0F || u < 0.0F) {
 				continue;
 			}
+			float ia = vec3_dot(an, light);
+			float ib = vec3_dot(bn, light);
+			float ic = vec3_dot(cn, light);
+			float intensity = ia * u + ib * v + ic * w;
+			int col;
 			if (m->texture != NULL) {
 				float tx = at->x * u + bt->x * v + ct->x * w;
 				float ty = at->y * u + bt->y * v + ct->y * w;
 				set_texture_color(m, tx, ty, intensity, &col);
 				if (col < 0) {
-					return;
+					continue;
 				}
+			} else {
+				col = (int) roundf(MAX_COL_VAL_F * intensity);
+				col = color24(col, col, col);
 			}
 			p.z = a.z * u + b.z * v + c.z * w;
 			pointz(x, y, col, p.z);

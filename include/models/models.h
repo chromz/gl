@@ -8,6 +8,7 @@ struct model {
 	struct ds_vector *vertices;
 	struct ds_vector *faces;
 	struct ds_vector *textures;
+	struct ds_vector *normals;
 	int *texture;
 	unsigned txwidth;
 	unsigned txheight;
