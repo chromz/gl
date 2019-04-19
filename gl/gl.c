@@ -160,18 +160,18 @@ static struct vec4 ndc_to_int_2f(float x, float y)
 	return v;
 }
 
-static struct vec4 ndc_to_int_3f(float x, float y, float z)
-{
-	struct vec4 v;
-	v.x = x;
-	v.y = y;
-	v.z = z;
-	v.w = 1.0F;
-	v = mat4f_mul_vec4(viewport_mat, &v);
-	v.x = (((int) v.x - 1) < 0) ? 0 : v.x - 1;
-	v.y = (((int) v.y - 1) < 0) ? 0 : v.y - 1;
-	return v;
-}
+/* static struct vec4 ndc_to_int_3f(float x, float y, float z) */
+/* { */
+/* 	struct vec4 v; */
+/* 	v.x = x; */
+/* 	v.y = y; */
+/* 	v.z = z; */
+/* 	v.w = 1.0F; */
+/* 	v = mat4f_mul_vec4(viewport_mat, &v); */
+/* 	v.x = (((int) v.x - 1) < 0) ? 0 : v.x - 1; */
+/* 	v.y = (((int) v.y - 1) < 0) ? 0 : v.y - 1; */
+/* 	return v; */
+/* } */
 
 static inline struct vec4 ndc_to_int_vec4(struct vec4 *v)
 {
@@ -254,15 +254,34 @@ void gl_light(float x, float y, float z)
 	light->z = z / norm;
 }
 
-void gl_look_at(struct vec3 eye, struct vec3 center, struct vec3 u)
+void gl_look_at(float eyex, float eyey, float eyez, float centerx,
+		float centery, float centerz, float upx, float upy, float upz)
 {
+	struct vec3 eye = {
+		.x = eyex,
+		.y = eyey,
+		.z = eyez,
+	};
+
+	struct vec3 center = {
+		.x = centerx,
+		.y = centery,
+		.z = centerz,
+	};
+
+	struct vec3 up = {
+		.x = upx,
+		.y = upy,
+		.z = upz,
+	};
+
 	assert(look_at_mat != NULL && projection_mat != NULL);
 	eye_vec = eye;
 	center_vec = center;
 	struct vec3 tmp = vec3_sub(&eye, &center);
 	mat4f_set(projection_mat, 3, 2, -1.0F / vec3_norm(&tmp));
 	struct vec3 z = vec3_normalize(&tmp);
-	tmp = vec3_cross(&u, &z);
+	tmp = vec3_cross(&up, &z);
 	struct vec3 x = vec3_normalize(&tmp);
 	tmp = vec3_cross(&z, &x);
 	struct vec3 y = vec3_normalize(&tmp);

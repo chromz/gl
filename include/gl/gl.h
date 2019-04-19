@@ -26,6 +26,9 @@ void gl_line(float x0, float y0, float x1, float y1);
 
 void gl_light(float x, float y, float z);
 
+void gl_look_at(float eyex, float eyey, float eyez, float centerx,
+		float centery, float centerz, float upx, float upy, float upz);
+
 int gl_obj(const char *filename, const char *txfilename);
 
 void gl_ngon(const float *ngon, size_t size);

@@ -14,6 +14,7 @@ int main(int argc, char **argv)
 	/* gl_scale(1.0, 1.0, 1.0); */
 	gl_light(0.0, 0.0, 1.0);
 	gl_rotate(3.14/2.0, 0.0, 0.0, 0.0);
+	gl_look_at(1.0, 1.0, 3.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	gl_obj(argv[1], argv[2]);
 	gl_finish();
 	return 0;
