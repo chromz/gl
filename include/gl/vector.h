@@ -63,5 +63,4 @@ struct vec3 vec3_cross(const struct vec3 *a, const struct vec3 *b);
 
 struct vec3 vec3_normalize(const struct vec3 *a);
 
-
 #endif

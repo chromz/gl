@@ -4,6 +4,8 @@
 #define GL_H
 
 #include "gl/vector.h"
+#include "gl/matrix.h"
+
 #include <stddef.h>
 
 void gl_init();
@@ -28,9 +30,11 @@ int gl_obj(const char *filename, const char *txfilename);
 
 void gl_ngon(const float *ngon, size_t size);
 
+void gl_scale(float x, float y, float z);
+
 void gl_translate(float x, float y, float z);
 
-void gl_scale(float x, float y, float z);
+void gl_rotate(float x, float y, float z);
 
 void gl_zbuffer(void);
 

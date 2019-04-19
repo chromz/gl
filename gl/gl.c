@@ -4,8 +4,8 @@
 #include "gl/gl.h"
 #include "models/models.h"
 
+#include <assert.h>
 #include <float.h>
-
 #include <limits.h>
 #include <math.h>
 #include <stdarg.h>
@@ -22,6 +22,7 @@
 
 static int *fbuffer;
 static float *zbuffer;
+static float zdepth = 255.0F;
 
 static int fbwidth;
 static int fbheight;
@@ -30,9 +31,13 @@ static int vpy = 0;
 static int vpw = 0;
 static int vph = 0;
 static int ccolor = 0;
+static struct vec3 eye_vec;
+static struct vec3 center_vec;
 static struct vec3 *light = NULL;
-static struct vec3 *trn = NULL;
-static struct vec3 *scl = NULL;
+static struct mat4f *scale_mat = NULL;
+static struct mat4f *translation_mat = NULL;
+static struct mat4f *viewport_mat = NULL;
+static struct mat4f *look_at_mat = NULL;
 
 
 
@@ -44,17 +49,21 @@ void gl_init(void)
 		light->y = 0;
 		light->z = 0;
 	}
-	if (trn == NULL) {
-		trn = malloc(sizeof(*trn));
-		trn->x = 0;
-		trn->y = 0;
-		trn->z = 0;
+
+	if (scale_mat == NULL) {
+		scale_mat = mat4f_identity_p();
 	}
-	if (scl == NULL) {
-		scl = malloc(sizeof(*scl));
-		scl->x = 1.0F;
-		scl->y = 1.0F;
-		scl->z = 1.0F;
+
+	if (translation_mat == NULL) {
+		translation_mat = mat4f_identity_p();
+	}
+
+	if (viewport_mat == NULL) {
+		viewport_mat = mat4f_identity_p();
+	}
+
+	if (look_at_mat == NULL) {
+		look_at_mat = mat4f_identity_p();
 	}
 }
 
@@ -80,10 +89,13 @@ void gl_create_window(int width, int height)
 
 void gl_viewport(int x, int y, int width, int height)
 {
-	vpx= x;
-	vpy = y;
-	vpw = width;
-	vph = height;
+	mat4f_set(viewport_mat, 0, 3, (float) x + (float) width / 2.0F);
+	mat4f_set(viewport_mat, 1, 3, (float) y + (float) height / 2.0F);
+	mat4f_set(viewport_mat, 2, 3, zdepth / 2.0F);
+
+	mat4f_set(viewport_mat, 0, 0, (float) width / 2.0F);
+	mat4f_set(viewport_mat, 1, 1, (float) height / 2.0F);
+	mat4f_set(viewport_mat, 2, 2, zdepth / 2.0F);
 }
 
 void gl_clear(void)
@@ -211,9 +223,7 @@ void gl_line(float x0, float y0, float x1, float y1)
 
 void gl_light(float x, float y, float z)
 {
-	if (light == NULL) {
-		light = malloc(sizeof(*light));
-	}
+	assert(light != NULL);
 	light->x = x;
 	light->y = y;
 	light->z = z;
@@ -224,20 +234,54 @@ void gl_light(float x, float y, float z)
 	light->z = z / norm;
 }
 
-
-
-static inline float transform(float val, float trn, float scl)
+void gl_look_at(struct vec3 eye, struct vec3 center, struct vec3 up)
 {
-	return (val + trn) * scl;
+	eye_vec = eye;
+	center_vec = center;
+	struct vec3 tmp = vec3_sub(&eye, &center);
+	struct vec3 z = vec3_normalize(&tmp);
+	tmp = vec3_cross(&up, &z);
+	struct vec3 x = vec3_normalize(&tmp);
+	tmp = vec3_cross(&z, &x);
+	struct vec3 y = vec3_normalize(&tmp);
+	struct mat4f tmp_mat = mat4f_identity();
+	struct mat4f center_mat = mat4f_identity();
+
+	mat4f_set(&tmp_mat, 0, 0, x.x);
+	mat4f_set(&tmp_mat, 0, 1, x.y);
+	mat4f_set(&tmp_mat, 0, 2, x.z);
+
+	mat4f_set(&tmp_mat, 1, 0, y.x);
+	mat4f_set(&tmp_mat, 1, 1, y.y);
+	mat4f_set(&tmp_mat, 1, 2, y.z);
+
+	mat4f_set(&tmp_mat, 2, 0, z.x);
+	mat4f_set(&tmp_mat, 2, 1, z.y);
+	mat4f_set(&tmp_mat, 2, 2, z.z);
+
+	mat4f_set(&center_mat, 0, 3, -center.x);
+	mat4f_set(&center_mat, 1, 3, -center.y);
+	mat4f_set(&center_mat, 2, 3, -center.z);
+
+	mat4f_mul4_set(look_at_mat, &tmp_mat, &center_mat);
 }
 
-static inline struct vec3 vec3_transform(struct vec3 *v, const struct vec3 *trn,
-					 const struct vec3 *scl)
+static inline struct vec3 vec3_transform(struct vec3 *v)
 {
+	/* struct mat4f projection = mat4f_identity(); */
+	struct vec4 aug;
+	aug.x = v->x;
+	aug.y = v->y;
+	aug.z = v->z;
+	aug.w = 1;
+	struct vec4 tmp = mat4f_mul_vec4(scale_mat, &aug);
+	// WIP
+	tmp = mat4f_mul_vec4(translation_mat, &tmp);
+
 	return (struct vec3) {
-		.x = transform(v->x, trn->x, scl->x),
-		.y = transform(v->y, trn->y, scl->y),
-		.z = transform(v->z, trn->z, scl->z),
+		.x = tmp.x / tmp.w,
+		.y = tmp.y / tmp.w,
+		.z = tmp.z / tmp.w,
 	};
 }
 
@@ -281,12 +325,9 @@ static void draw_triangle(const struct model *m, const struct face *f)
 	struct facetup *bf = ds_vector_get(f->data, 1);
 	struct facetup *cf = ds_vector_get(f->data, 2);
 
-	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi),
-				       trn, scl);
-	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi),
-				       trn, scl);
-	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi),
-				       trn, scl);
+	struct vec3 a = vec3_transform(ds_vector_get(m->vertices, af->vi));
+	struct vec3 b = vec3_transform(ds_vector_get(m->vertices, bf->vi));
+	struct vec3 c = vec3_transform(ds_vector_get(m->vertices, cf->vi));
 	
 
 	struct vec3 ab = vec3_sub(&b, &a);
@@ -493,24 +534,20 @@ int gl_obj(const char *filename, const char *txfilename)
 	return 1;
 }
 
-void gl_translate(float x, float y, float z)
-{
-	if (trn == NULL) {
-		trn = malloc(sizeof(*trn));
-	}
-	trn->x = x;
-	trn->y = y;
-	trn->z = z;
-}
-
 void gl_scale(float x, float y, float z)
 {
-	if (scl == NULL) {
-		scl = malloc(sizeof(*scl));
-	}
-	scl->x = x;
-	scl->y = y;
-	scl->z = z;
+	assert(scale_mat != NULL);
+	scale_mat->data[0] = x;
+	scale_mat->data[5] = y;
+	scale_mat->data[10] = z;
+}
+
+void gl_translate(float x, float y, float z)
+{
+	assert(translation_mat != NULL);
+	translation_mat->data[3] = x;
+	translation_mat->data[7] = y;
+	translation_mat->data[11] = z;
 }
 
 void gl_zbuffer(void)
@@ -549,6 +586,8 @@ void gl_finish(void)
 	free(fbuffer);
 	free(zbuffer);
 	free(light);
-	free(trn);
-	free(scl);
+	free(scale_mat);
+	free(translation_mat);
+	free(look_at_mat);
+	free(viewport_mat);
 }

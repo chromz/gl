@@ -52,5 +52,3 @@ struct vec3 vec3_normalize(const struct vec3 *a)
 		.z = a->z / norm,
 	};
 }
-
-

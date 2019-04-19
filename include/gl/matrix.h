@@ -11,8 +11,20 @@ struct mat4f {
 	float data[16];
 };
 
-struct mat4f matf_mul4(struct mat4f *a, struct mat4f *b);
+void mat4f_mul4_set(struct mat4f *res, const struct mat4f *a,
+		    const struct mat4f *b);
 
-struct vec4 matf_mul_vec4(struct mat4f *a, struct vec4 *b);
+struct mat4f mat4f_mul4(const struct mat4f *a, const struct mat4f *b);
+
+// Pure laziness
+struct vec4 mat4f_mul_vec4(const struct mat4f *a, const struct vec4 *b);
+
+void mat4f_set(struct mat4f *m, const unsigned x, const unsigned y, float val);
+
+float mat4f_get(const struct mat4f *m, const unsigned x, const unsigned y);
+
+struct mat4f mat4f_identity(void);
+
+struct mat4f *mat4f_identity_p(void);
 
 #endif
