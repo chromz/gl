@@ -419,10 +419,13 @@ static void draw_triangle(const struct model *m, const struct face *f)
 				float ty = at->y * u + bt->y * v + ct->y * w;
 				set_texture_color(m, tx, ty, intensity, &col);
 				if (col < 0) {
-					continue;
+					col = 0;
 				}
 			} else {
 				col = (int) roundf(MAX_COL_VAL_F * intensity);
+				if (col < 0) {
+					col = 0;
+				}
 				col = color24(col, col, col);
 			}
 			p.z = a.z * u + b.z * v + c.z * w;

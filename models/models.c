@@ -103,6 +103,7 @@ struct model *model_load(const char *filename, const char *txfilename)
 	if (txfilename != NULL) {
 		bmp_load(txfilename, &mdl->texture, &mdl->txwidth,
 				&mdl->txheight);
+		/* bmp_write("builddir/canvas.bmp", mdl->texture, mdl->txwidth, mdl->txheight); */ 
 	}
 	mdl->vertices = ds_vector_new_with_free(elm_free);
 	mdl->faces = ds_vector_new_with_free(face_free);
