@@ -5,7 +5,7 @@ let g:ale_linters = {
 \   'c': ['cppcheck', 'clangcheck', 'clangtidy'],
 \}
 
-command! Debug :TermdebugCommand builddir/labs/main ~/Downloads/lumber/lumberJack.obj ~/Downloads/lumber/lumberJack_diffuse.bmp 
+command! Debug :TermdebugCommand builddir/labs/main
 
 
 command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin

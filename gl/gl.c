@@ -37,6 +37,8 @@ static struct mat4f *viewport_mat = NULL;
 static struct mat4f *projection_mat = NULL;
 static struct mat4f *look_at_mat = NULL;
 
+static gl_shader_func shader_func = NULL;
+
 
 
 void gl_init(void)
@@ -71,6 +73,11 @@ void gl_init(void)
 	if (look_at_mat == NULL) {
 		look_at_mat = mat4f_identity_p();
 	}
+}
+
+inline void gl_shader(gl_shader_func shader)
+{
+	shader_func = shader;
 }
 
 static inline void swap(int *a, int *b)
@@ -363,6 +370,29 @@ static void set_texture_color(const struct model *m, float tx, float ty,
 	*col += (int) ((unsigned) (roundf((float) tmp * intensity)));
 }
 
+static int gouraud(const struct model *m, const float u, const float v,
+		   const float w, const int x,
+		   const int y, const struct vec3 *at,
+		   const struct vec3 *bt, const struct vec3 *ct,
+		   const struct vec3 *an, const struct vec3 *bn,
+		   const struct vec3 *cn)
+{
+	float ia = vec3_dot(an, light);
+	float ib = vec3_dot(bn, light);
+	float ic = vec3_dot(cn, light);
+	float intensity = ia * u + ib * v + ic * w;
+	int col;
+	if (at != NULL && bt != NULL && ct != NULL) {
+		float tx = at->x * u + bt->x * v + ct->x * w;
+		float ty = at->y * u + bt->y * v + ct->y * w;
+		set_texture_color(m, tx, ty, intensity, &col);
+	} else {
+		return (int) roundf(MAX_COL_VAL_F * intensity);
+	}
+	
+	return col;
+}
+
 static void draw_triangle(const struct model *m, const struct face *f)
 {
 	struct facetup *af = ds_vector_get(f->data, 0);
@@ -377,17 +407,15 @@ static void draw_triangle(const struct model *m, const struct face *f)
 	struct vec3 *an = ds_vector_get(m->normals, af->ni);
 	struct vec3 *bn = ds_vector_get(m->normals, bf->ni);
 	struct vec3 *cn = ds_vector_get(m->normals, cf->ni);
-	
 
-	struct vec3 *at;
-	struct vec3 *bt;
-	struct vec3 *ct;
-	if (m->texture) {
+	struct vec3 *at = NULL;
+	struct vec3 *bt = NULL;
+	struct vec3 *ct = NULL;
+	if (m->texture != NULL) {
 		at = ds_vector_get(m->textures, af->ti);
 		bt = ds_vector_get(m->textures, bf->ti);
 		ct = ds_vector_get(m->textures, cf->ti);
 	}
-	
 
 	// Bounding box
 	int minx = (int) fminf(fminf(a.x, b.x), c.x);
@@ -409,20 +437,16 @@ static void draw_triangle(const struct model *m, const struct face *f)
 			if (w < 0.0F || v < 0.0F || u < 0.0F) {
 				continue;
 			}
-			float ia = vec3_dot(an, light);
-			float ib = vec3_dot(bn, light);
-			float ic = vec3_dot(cn, light);
-			float intensity = ia * u + ib * v + ic * w;
 			int col;
 			if (m->texture != NULL) {
-				float tx = at->x * u + bt->x * v + ct->x * w;
-				float ty = at->y * u + bt->y * v + ct->y * w;
-				set_texture_color(m, tx, ty, intensity, &col);
+				col = shader_func(m, u, v, w, x, y, at, bt, ct,
+						  an, bn, cn);
 				if (col < 0) {
 					col = 0;
 				}
 			} else {
-				col = (int) roundf(MAX_COL_VAL_F * intensity);
+				col = shader_func(m, u, v, w, x, y, at, bt, ct,
+						  an, bn, cn);
 				if (col < 0) {
 					col = 0;
 				}
@@ -536,7 +560,6 @@ static float *setup_ngon(struct model *m, struct face *f)
 		return NULL;
 	}
 	ccolor = color24(col, col, col);
-	
 	for (i = 0; i < f->facedim; i++) {
 		struct facetup *tup = ds_vector_get(f->data, i);
 		struct vec3 *corner = ds_vector_get(m->vertices, tup->vi);
@@ -550,6 +573,9 @@ static float *setup_ngon(struct model *m, struct face *f)
 int gl_obj(const char *filename, const char *txfilename)
 {
 	struct model *m = model_load(filename, txfilename);
+	if (shader_func == NULL) {
+		shader_func= gouraud;
+	}
 	if (m == NULL) {
 		return -1;
 	}
