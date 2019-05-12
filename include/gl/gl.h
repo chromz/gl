@@ -9,9 +9,9 @@
 
 #include <stddef.h>
 
-typedef int (*gl_shader_func)(const struct model *m, const float u,
-			      const float v, const float w, const int x,
-			      const int y, const struct vec3 *at,
+typedef int (*gl_shader_func)(const struct model *m, const struct vec3 *light,
+			      const float u, const float v, const float w,
+			      const int x, const int y, const struct vec3 *at,
 			      const struct vec3 *bt, const struct vec3 *ct,
 			      const struct vec3 *an, const struct vec3 *bn,
 			      const struct vec3 *cn);

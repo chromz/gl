@@ -370,9 +370,9 @@ static void set_texture_color(const struct model *m, float tx, float ty,
 	*col += (int) ((unsigned) (roundf((float) tmp * intensity)));
 }
 
-static int gouraud(const struct model *m, const float u, const float v,
-		   const float w, const int x,
-		   const int y, const struct vec3 *at,
+static int gouraud(const struct model *m, const struct vec3 *light,
+		   const float u, const float v, const float w,
+		   const int x, const int y, const struct vec3 *at,
 		   const struct vec3 *bt, const struct vec3 *ct,
 		   const struct vec3 *an, const struct vec3 *bn,
 		   const struct vec3 *cn)
@@ -387,7 +387,8 @@ static int gouraud(const struct model *m, const float u, const float v,
 		float ty = at->y * u + bt->y * v + ct->y * w;
 		set_texture_color(m, tx, ty, intensity, &col);
 	} else {
-		return (int) roundf(MAX_COL_VAL_F * intensity);
+		col = (int) roundf(MAX_COL_VAL_F * intensity);
+		return color24(col, col, col);
 	}
 	
 	return col;
@@ -439,18 +440,17 @@ static void draw_triangle(const struct model *m, const struct face *f)
 			}
 			int col;
 			if (m->texture != NULL) {
-				col = shader_func(m, u, v, w, x, y, at, bt, ct,
-						  an, bn, cn);
+				col = shader_func(m, light, u, v, w, x, y, at,
+						  bt, ct, an, bn, cn);
 				if (col < 0) {
 					col = 0;
 				}
 			} else {
-				col = shader_func(m, u, v, w, x, y, at, bt, ct,
-						  an, bn, cn);
+				col = shader_func(m, light, u, v, w, x, y, at,
+						  bt, ct, an, bn, cn);
 				if (col < 0) {
 					col = 0;
 				}
-				col = color24(col, col, col);
 			}
 			p.z = a.z * u + b.z * v + c.z * w;
 			pointz(x, y, col, p.z);
