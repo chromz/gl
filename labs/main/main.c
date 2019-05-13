@@ -16,27 +16,12 @@ static float focus_x = 430.0F;
 static float focus_y = 400.0F;
 static float grandient_w = 300.0F;
 
-static float r_pole = width * 0.1F;
-static float theta_pole = 0;
-
-static int cloud_x = 334;
-static int cloud_y = 500;
-
-static float hurr_focus_x = 500.0F;
-static float hurr_focus_y = 280.0F;
-
 
 static float edistance(float x, float y, float x1, float y1)
 {
 	return sqrtf(powf(x1 - x, 2) + powf(y1 - y, 2));
 }
 
-static float polar_distance(float r0, float theta0, float r1, float theta1)
-{
-	float r0sq = r0 * r0;
-	float r1sq = r1 * r1;
-	return sqrtf(r0sq + r1sq - 2.0 * r0 * r1 * cosf(theta0 - theta1));
-}
 
 static inline int color(unsigned r, unsigned g, unsigned b, float intensity)
 {
@@ -58,29 +43,6 @@ static int interpolate_col(int r1, int g1,int b1, int r2, int g2,
 	return  color(ri, gi, bi, intensity);
 }
 
-static int is_in_cloud(const int x, const int y)
-{
-	/* float distance_south = (sqrtf(powf(x - south_pole_xc, 2) + */
-	/*			     powf(y - south_pole_yc, 2)) - */
-	/*			south_pole_r); */
-	/* if (powf((float) x - south_pole_xc, 2) + */
-	/*     powf((float) y - south_pole_yc, 2) < powf(south_pole_r, 2)) { */
-	/*	float random_n = (random() /  (float) RAND_MAX); */
-	/*	if (random_n <= 0.5 && distance_south < 10) { */
-	/*		return 1; */
-	/*	} */
-	/* } */
-	int xc = x - cloud_x;
-	int yc = y - cloud_y;
-	float rho = sqrtf((float) xc * xc + (float) yc * yc);
-	float theta = -atan2(yc + 20, xc + 20);
-	float rho_real = theta * 16.9;
-	float distance  = polar_distance(rho, theta, rho_real, theta);
-	if (distance < 2.0F) {
-		return 1;
-	}
-	return 0;
-}
 
 static int is_in_hurr(const int x, const int y, const int hurr_x,
 		      const int hurr_y, const float scale_x,
