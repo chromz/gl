@@ -55,6 +55,8 @@ void gl_rotate(float angle, float x, float y, float z);
 
 void gl_zbuffer(void);
 
+void gl_background(const char *filename);
+
 void gl_finish();
 
 

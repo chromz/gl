@@ -688,6 +688,20 @@ void gl_zbuffer(void)
 	}
 }
 
+void gl_background(const char *filename)
+{
+	int *img = NULL;
+	unsigned width;
+	unsigned height;
+	int success = bmp_load(filename, &img, &width, &height);
+	if (!success) {
+		return;
+	}
+	for (int i = 0; i < fbwidth * fbheight; i++) {
+		fbuffer[i] = img[i];
+	}
+}
+
 void gl_finish(void)
 {
 	bmp_write("canvas.bmp", fbuffer, fbwidth, fbheight);

@@ -70,7 +70,6 @@ int bmp_load(const char *filename, int **buffer, unsigned *width,
 				((unsigned) color[1] << 8U) + color[0]);
 		}
 	}
-	/* fseek(file, 2, SEEK_SET); */
 		
 	fclose(file);
 	return 1;
