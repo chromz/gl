@@ -191,6 +191,11 @@ void gl_vertex(float x, float y)
 	point((int) v.x, (int) v.y, ccolor);
 }
 
+void gl_vertexi(int x, int y)
+{
+	point(x, y, ccolor);
+}
+
 static inline int color24(unsigned r, unsigned g, unsigned b)
 {
 	return (int) ((r << R_OFFSET) + (g << G_OFFSET) + b);
@@ -246,6 +251,11 @@ void gl_line(float x0, float y0, float x1, float y1)
 	struct vec4 v0 = ndc_to_int_2f(x0, y0);
 	struct vec4 v1 = ndc_to_int_2f(x1, y1);
 	bresenham(v0.x, v0.y, v1.x, v1.y);
+}
+
+void gl_linei(int x0, int y0, int x1, int y1)
+{
+	bresenham(x0, y0, x1, y1);
 }
 
 void gl_light(float x, float y, float z)
@@ -527,8 +537,8 @@ void gl_ngon(const float *ngon, size_t size)
 	struct vec4 minv = ndc_to_int_2f(box.x, box.y);
 	struct vec4 maxv = ndc_to_int_2f(box.z, box.w);
 
-	for (int y = minv.y; y <= maxv.y; y++) {
-		for (int x = minv.x; x <= maxv.x; x++) {
+	for (int y = (int) minv.y; y <= (int) maxv.y; y++) {
+		for (int x = (int) minv.x; x <= (int) maxv.x; x++) {
 			if (is_inside((float) x, (float) y, ngon, size)) {
 				point(x, y, ccolor);
 			}

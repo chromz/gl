@@ -30,9 +30,13 @@ void gl_clear_color(float r, float g, float b);
 
 void gl_vertex(float x, float y);
 
+void gl_vertexi(int x, int y);
+
 void gl_color(float r, float g, float b);
 
 void gl_line(float x0, float y0, float x1, float y1);
+
+void gl_linei(int x0, int y0, int x1, int y1);
 
 void gl_light(float x, float y, float z);
 

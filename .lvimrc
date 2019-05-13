@@ -1,12 +1,7 @@
 
 
-let g:ale_c_clangtidy_checks =  ['*', '-cppcoreguidelines-avoid-magic-numbers', '-readability-magic-numbers']
 let g:ale_linters = {
 \   'c': ['cppcheck', 'clangcheck', 'clangtidy'],
 \}
 
-command! Debug :TermdebugCommand builddir/labs/main
-
-
-command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin
-command! Test :TermdebugCommand builddir/tests/gl/gl_test_bin
+command! Debug :TermdebugCommand build/labs/main
