@@ -400,7 +400,7 @@ static int gouraud(const struct model *m, const struct vec3 *light,
 		col = (int) roundf(MAX_COL_VAL_F * intensity);
 		return color24(col, col, col);
 	}
-	
+
 	return col;
 }
 
