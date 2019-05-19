@@ -38,3 +38,11 @@ configure_file(input : 'ray.obj',
 configure_file(input : 'ray.bmp',
                output : 'ray.bmp',
                copy: true)
+
+configure_file(input : 'box.obj',
+               output : 'box.obj',
+               copy: true)
+
+configure_file(input : 'box.bmp',
+               output : 'box.bmp',
+               copy: true)
